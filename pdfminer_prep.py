@@ -58,49 +58,24 @@ pages = []
 xcord = []
 ycord = []
 content = []
+docs = []
+i = 0
 
 password = ""
 extracted_text = ""
 
-#open first PDF file
-fp = open(os.path.join(datapath , '190.pdf'), 'rb')
-
-
-# Create parser object to parse the pdf content
-parser = PDFParser(fp)
-
-# Store the parsed content in PDFDocument object
-document = PDFDocument(parser, password)
-
-	
-# Create PDFResourceManager object that stores shared resources such as fonts or images
-rsrcmgr = PDFResourceManager()
-
-# set parameters for analysis
-laparams = LAParams()
-
-# Create a PDFDevice object which translates interpreted information into desired format
-# Device needs to be connected to resource manager to store shared resources
-device = PDFDevice(rsrcmgr)
-# Extract the decive to page aggregator to get LT object elements
-device = PDFPageAggregator(rsrcmgr, laparams=laparams)
-
-# Create interpreter object to process page content from PDFDocument
-# Interpreter needs to be connected to resource manager for shared resources and device 
-interpreter = PDFPageInterpreter(rsrcmgr, device)
-
 def parse_obj(lt_objs):
-
 	# loop over the object list
 	for obj in lt_objs:
 
 		# if it's a textbox, print text and location
 		if isinstance(obj, LTTextBoxHorizontal):
-			print (str(p) +',' +"%6d, %6d, %s" % (obj.bbox[0], obj.bbox[1], obj.get_text().replace('\n', '_')))
+			#print (str(p) +',' +"%6d, %6d, %s" % (obj.bbox[0], obj.bbox[1], obj.get_text().replace('\n', '_')))
 			pages.append(pagenum)
 			xcord.append(obj.bbox[0])
 			ycord.append(obj.bbox[1])
 			content.append(obj.get_text().replace('\n', '_'))
+			docs.append(docnr)
 			#df = df.append({'page': pagenum, 'Xcord': obj.bbox[0], 'Ycord': obj.bbox[1], 'Content':obj.get_text().replace('\n', '_') }, ignore_index=True)
 
 
@@ -108,33 +83,70 @@ def parse_obj(lt_objs):
 		elif isinstance(obj, LTFigure):
 			parse_obj(obj._objs)
 
-# Ok now that we have everything to process a pdf document, lets process it page by page
-for p ,page in enumerate(PDFPage.create_pages(document)):
-	pagenum = p + 1
-	# As the interpreter processes the page stored in PDFDocument object
-	interpreter.process_page(page)
-	# The device renders the layout from interpreter
-	layout = device.get_result()
 
-	# extract text from this object
-	parse_obj(layout._objs)
-	# # Out of the many LT objects within layout, we are interested in LTTextBox and LTTextLine
-	# for lt_obj in layout:
-	# 	if isinstance(lt_obj, LTTextBox) or isinstance(lt_obj, LTTextLine):
-	# 		extracted_text += lt_obj.get_text()
-			
-#close the pdf file
-fp.close()
+for d, entry in enumerate(entries):
+	print(entry)
+	print(i)
 
-print (extracted_text.encode("utf-8"))
+	docnr = d + 1
+
+	#open first PDF file
+	fp = open(os.path.join(datapath , entry), 'rb')
+
+
+	# Create parser object to parse the pdf content
+	parser = PDFParser(fp)
+
+	# Store the parsed content in PDFDocument object
+	document = PDFDocument(parser, password)
+
+		
+	# Create PDFResourceManager object that stores shared resources such as fonts or images
+	rsrcmgr = PDFResourceManager()
+
+	# set parameters for analysis
+	laparams = LAParams()
+
+	# Create a PDFDevice object which translates interpreted information into desired format
+	# Device needs to be connected to resource manager to store shared resources
+	device = PDFDevice(rsrcmgr)
+	# Extract the decive to page aggregator to get LT object elements
+	device = PDFPageAggregator(rsrcmgr, laparams=laparams)
+
+	# Create interpreter object to process page content from PDFDocument
+	# Interpreter needs to be connected to resource manager for shared resources and device 
+	interpreter = PDFPageInterpreter(rsrcmgr, device)
+
+	# Ok now that we have everything to process a pdf document, lets process it page by page
+	for p ,page in enumerate(PDFPage.create_pages(document)):
+		pagenum = p + 1
+		# As the interpreter processes the page stored in PDFDocument object
+		interpreter.process_page(page)
+		# The device renders the layout from interpreter
+		layout = device.get_result()
+
+		# extract text from this object
+		parse_obj(layout._objs)
+		# # Out of the many LT objects within layout, we are interested in LTTextBox and LTTextLine
+		# for lt_obj in layout:
+		# 	if isinstance(lt_obj, LTTextBox) or isinstance(lt_obj, LTTextLine):
+		# 		extracted_text += lt_obj.get_text()
+				
+	#close the pdf file
+	fp.close()
+
+	i = i+1
+
 
 #creat empty dataframe
-df = pd.DataFrame( {'Page': pages,
+df = pd.DataFrame( 
+	{
+	 'doc': docs,
+	 'Page': pages,
      'Xcord': xcord,
      'Ycord': ycord,
 	 'Content': content,
     })
 
-print(df)
 
 df.to_csv('test.csv', index=False)
