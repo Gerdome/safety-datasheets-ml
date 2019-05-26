@@ -29,6 +29,7 @@ from pdfminer.layout import LAParams, LTTextBox, LTTextLine, LTTextBoxHorizontal
 from pdfminer.converter import PDFPageAggregator
 
 import pandas as pd
+from nltk.tokenize import word_tokenize
 
 ''' This is what we are trying to do:
 1) Transfer information from PDF file to PDF document object. This is done using parser
@@ -45,7 +46,7 @@ import pandas as pd
 ospath =  os.path.dirname(__file__) 
 
 #specify relative path to data files
-datadir = 'data/'
+datadir = 'data/pdf/'
 
 #full path to data files
 datapath = os.path.join(ospath, datadir)
@@ -59,12 +60,14 @@ xcord = []
 ycord = []
 content = []
 docs = []
+objects = []
 i = 0
 
 password = ""
 extracted_text = ""
 
 def parse_obj(lt_objs):
+	objectnum = 1
 	# loop over the object list
 	for obj in lt_objs:
 
@@ -74,8 +77,9 @@ def parse_obj(lt_objs):
 			pages.append(pagenum)
 			xcord.append(obj.bbox[0])
 			ycord.append(obj.bbox[1])
-			content.append(obj.get_text().replace('\n', '_'))
-			docs.append(docnr)
+			content.append(obj.get_text().replace('\n', ' _ '))
+			docs.append(doc)
+			objects.append(objectnum)
 			#df = df.append({'page': pagenum, 'Xcord': obj.bbox[0], 'Ycord': obj.bbox[1], 'Content':obj.get_text().replace('\n', '_') }, ignore_index=True)
 
 
@@ -83,12 +87,13 @@ def parse_obj(lt_objs):
 		elif isinstance(obj, LTFigure):
 			parse_obj(obj._objs)
 
+		objectnum = objectnum + 1
 
-for d, entry in enumerate(entries):
-	print(entry)
+
+for d, entry in enumerate(entries[149:]):
 	print(i)
 
-	docnr = d + 1
+	doc = entry
 
 	#open first PDF file
 	fp = open(os.path.join(datapath , entry), 'rb')
@@ -145,8 +150,17 @@ df = pd.DataFrame(
 	 'Page': pages,
      'Xcord': xcord,
      'Ycord': ycord,
+	 'Object': objects,
 	 'Content': content,
     })
 
 
-df.to_csv('test.csv', index=False)
+s = df['Content'].str.split(' ').apply(pd.Series, 1).stack()
+s.index = s.index.droplevel(-1)
+s.name = 'Content'
+
+del df['Content']
+df = df.join(s)
+
+
+df.to_csv('full_data_150_.csv', index=False, encoding='utf-8-sig')

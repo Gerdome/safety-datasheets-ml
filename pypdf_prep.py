@@ -7,7 +7,7 @@ from nltk.tokenize import word_tokenize
 ospath =  os.path.dirname(__file__) 
 
 #specify relative path to data files
-datadir = 'data/'
+datadir = 'data/pdf/'
 
 #full path to data files
 datapath = os.path.join(ospath, datadir)
