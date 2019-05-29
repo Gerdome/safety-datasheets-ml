@@ -25,7 +25,7 @@ from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.pdfdevice import PDFDevice
 # Import this to raise exception whenever text extraction from PDF is not allowed
 from pdfminer.pdfpage import PDFTextExtractionNotAllowed
-from pdfminer.layout import LAParams, LTTextBox, LTTextLine, LTTextBoxHorizontal, LTFigure
+from pdfminer.layout import LAParams, LTTextBox, LTTextLine, LTTextBoxHorizontal, LTFigure, LTChar, LTText, LTAnno
 from pdfminer.converter import PDFPageAggregator
 
 import pandas as pd
@@ -58,10 +58,14 @@ entries = os.listdir(datapath)
 pages = []
 xcord = []
 ycord = []
+xcords_first = []
+ycords_first = []
 content = []
 docs = []
 objects = []
+textboxes = []
 i = 0
+words = []
 
 password = ""
 extracted_text = ""
@@ -71,9 +75,13 @@ def parse_obj(lt_objs):
 	# loop over the object list
 	for obj in lt_objs:
 
+		#print(obj)
+	
+
 		# if it's a textbox, print text and location
 		if isinstance(obj, LTTextBoxHorizontal):
 			#print (str(p) +',' +"%6d, %6d, %s" % (obj.bbox[0], obj.bbox[1], obj.get_text().replace('\n', '_')))
+			#print(obj)
 			pages.append(pagenum)
 			xcord.append(obj.bbox[0])
 			ycord.append(obj.bbox[1])
@@ -90,7 +98,62 @@ def parse_obj(lt_objs):
 		objectnum = objectnum + 1
 
 
-for d, entry in enumerate(entries[149:]):
+def parse_words(lt_objs):
+        objectnum = 1
+        #iterate through Textboxes
+        for obj in lt_objs:
+                textboxnum = 1
+                if isinstance(obj, LTTextBoxHorizontal):
+                #iterate through TextLines
+                        for o in obj._objs:
+                                if isinstance(o, LTTextLine):
+                                        text=o.get_text()
+                                        #print(text)
+                                        if text.strip():
+                                                #print('test')
+                                                word = ''
+                                                #iterate through characters
+                                                for c in  o._objs:
+                                                        #if it is a character
+                                                        if isinstance(c, LTChar):
+                                                                #append until space
+                                                                word += str(c.get_text())
+                                                                #remember coords if its first char of word
+                                                                if len(word) == 1:
+                                                                        xcord_first = c.bbox[0]
+                                                                        ycord_first = c.bbox[1]
+                                                                # if space: append word to list (without the space) and start new word
+                                                                if c.get_text() == ' ':
+                                                                        words.append(word[:-1])
+                                                                        pages.append(pagenum)
+                                                                        xcords_first.append(xcord_first)
+                                                                        ycords_first.append(ycord_first)
+                                                                        docs.append(doc)
+                                                                        objects.append(objectnum)
+                                                                        textboxes.append(textboxnum)
+                                                                        word = ''
+                                                        #if it is a new line: append word to list and start new word
+                                                        if isinstance(c, LTAnno):
+                                                                words.append(word)
+                                                                pages.append(pagenum)
+                                                                xcords_first.append(xcord_first)
+                                                                ycords_first.append(ycord_first)
+                                                                docs.append(doc)
+                                                                objects.append(objectnum)
+                                                                textboxes.append(textboxnum)
+                                                                word = ''
+             
+                                textboxnum = textboxnum + 1
+                                        
+                                                                        
+                # if it's a container, recurse
+                elif isinstance(obj, LTFigure):
+                        parse_words(obj._objs)
+
+                objectnum = objectnum + 1
+
+
+for d, entry in enumerate(entries[150:]):
 	print(i)
 
 	doc = entry
@@ -130,8 +193,18 @@ for d, entry in enumerate(entries[149:]):
 		# The device renders the layout from interpreter
 		layout = device.get_result()
 
+		# for lobj in layout:
+			
+		# 	if isinstance(lobj, LTTextBox):
+		# 		x, y, text = lobj.bbox[0], lobj.bbox[3], lobj.get_text()
+		# 		print('At %r is text: %s' % ((x, y), text))
+
+		parse_words(layout._objs)
+		
+		#print(layout._objs)
+
 		# extract text from this object
-		parse_obj(layout._objs)
+		#parse_obj(layout._objs)
 		# # Out of the many LT objects within layout, we are interested in LTTextBox and LTTextLine
 		# for lt_obj in layout:
 		# 	if isinstance(lt_obj, LTTextBox) or isinstance(lt_obj, LTTextLine):
@@ -142,25 +215,25 @@ for d, entry in enumerate(entries[149:]):
 
 	i = i+1
 
-
 #creat empty dataframe
 df = pd.DataFrame( 
 	{
 	 'doc': docs,
 	 'Page': pages,
-     'Xcord': xcord,
-     'Ycord': ycord,
+         'Xcord_first': xcords_first,
+         'Ycord_first': ycords_first,
 	 'Object': objects,
-	 'Content': content,
+         'Textbox': textboxes,
+	 'word': words
+
     })
 
+#s = df['Content'].str.split(' ').apply(pd.Series, 1).stack()
+#s.index = s.index.droplevel(-1)
+#s.name = 'Content'
 
-s = df['Content'].str.split(' ').apply(pd.Series, 1).stack()
-s.index = s.index.droplevel(-1)
-s.name = 'Content'
-
-del df['Content']
-df = df.join(s)
+#del df['Content']
+#df = df.join(s)
 
 
-df.to_csv('full_data_150_.csv', index=False, encoding='utf-8-sig')
+df.to_csv('data_150_.csv', index=False, encoding='utf-8-sig')
