@@ -1,15 +1,15 @@
 # safety-datasheets-ml
 Repository for our university project about validating and extracting safety data sheets
-# Validierung von Sicherheitsdatenblätter
+# Validierung von Sicherheitsdatenblï¿½tter
 
 
 ## Ziele
 ### Klassifikation durch ML
 
-Handelt es sich bei dem Dokument um ein Sicherheitsdatenblatt?
+Handelt es sich bei dem Dokument um ein Sicherheitsdatenblatt? -> ja/nein/vielleicht
 
-### Prüfparameter
-Erkennung der einzelnen Prüfparameter:
+### Prï¿½fparameter
+Erkennung der einzelnen Prï¿½fparameter:
 #### Verordnungen
 
 #### Version des Datenblatts
