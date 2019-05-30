@@ -6,7 +6,7 @@ Repository for our university project about validating and extracting safety dat
 ## Ziele
 ### Klassifikation durch ML
 
-Handelt es sich bei dem Dokument um ein Sicherheitsdatenblatt? -> ja/nein/vielleicht
+Handelt es sich bei dem Dokument um ein Sicherheitsdatenblatt? -> ja/nein/vielleicht --> das ist ein test
 
 ### Pr�fparameter
 Erkennung der einzelnen Pr�fparameter:
