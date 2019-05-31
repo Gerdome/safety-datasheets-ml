@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import datefinder
 import dateutil.parser as dparser
 import pandas as pd
@@ -23,11 +25,25 @@ words = list(data.loc[:122, 'Content'])
 
 dates = list ()
 
+
+for s in words:
+    s = str (s)
+    for fmt in ('%d.%m.%Y', '%d.%m.%y', '%d-%m-%Y', '%d-%m-%y', '%d/%m/%Y', '%d/%m/%y','%d. %b %y', '%d. %B %y'):
+        try:
+            date = datetime.strptime(s, '%d.%m.%Y').date()
+            continue
+        except ValueError:
+            date = 'None'
+
+    print (date)
+
+
 '''
+#Detects single numbers as Date
 for i in words:
     i = str(i)
     try:
-        x = dparser.parse(i)
+        x = dparser.parse(i, dayfirst = True)
 
     except ValueError:
         x = None
@@ -35,8 +51,10 @@ for i in words:
     dates.append(x)
 
 print (dates)
+'''
 
 '''
+#Returns unclear output
 for i in words:
     i = str(i)
     try:
@@ -48,3 +66,4 @@ for i in words:
     dates.append(x)
 
 print (dates)
+'''
