@@ -1,41 +1,50 @@
-from datetime import datetime
+#import datefinder
+#import dateutil.parser as dparser
 
-import datefinder
-import dateutil.parser as dparser
+from datetime import datetime
 import pandas as pd
 from nltk import FreqDist
 from nltk.corpus import stopwords
 import os 
 
-
 #set directory path of current script
 ospath =  os.path.dirname(__file__) 
 
 #specify relative path to data files
-datadir = 'data/objects_detected/'
+datadir = 'data/words_detected/'
 
 #full path to data files
 datapath = os.path.join(ospath, datadir)
 
 #read raw data csv
-data = pd.read_csv(datapath + 'full_data_0_50.csv')
+data = pd.read_csv(datapath + 'data_0_50.csv')
 
 #get list of all words
-words = list(data.loc[:122, 'Content'])
+words = list(data.loc[:122,'word'])
 
-dates = list ()
-
+#dates = list()
 
 for s in words:
     s = str (s)
     for fmt in ('%d.%m.%Y', '%d.%m.%y', '%d-%m-%Y', '%d-%m-%y', '%d/%m/%Y', '%d/%m/%y','%d. %b %y', '%d. %B %y'):
         try:
-            date = datetime.strptime(s, '%d.%m.%Y').date()
+            date = datetime.strptime(s, fmt).date()
             continue
         except ValueError:
             date = 'None'
 
-    print (date)
+    #dates.append(date)
+    print(date)
+
+'''
+isDateColumn = pd.DataFrame ({'IsDate' :dates})
+
+data ['IsDate'] = isDateColumn
+
+data.loc['IsDate']
+
+data.to_csv(datapath + 'data_dates_identified_0_50_.csv', index=False, encoding='utf-8-sig')
+'''
 
 
 '''
