@@ -75,21 +75,14 @@ def parse_obj(lt_objs):
 	# loop over the object list
 	for obj in lt_objs:
 
-		#print(obj)
-	
-
 		# if it's a textbox, print text and location
 		if isinstance(obj, LTTextBoxHorizontal):
-			#print (str(p) +',' +"%6d, %6d, %s" % (obj.bbox[0], obj.bbox[1], obj.get_text().replace('\n', '_')))
-			#print(obj)
 			pages.append(pagenum)
 			xcord.append(obj.bbox[0])
 			ycord.append(obj.bbox[1])
 			content.append(obj.get_text().replace('\n', ' _ '))
 			docs.append(doc)
 			objects.append(objectnum)
-			#df = df.append({'page': pagenum, 'Xcord': obj.bbox[0], 'Ycord': obj.bbox[1], 'Content':obj.get_text().replace('\n', '_') }, ignore_index=True)
-
 
 		# if it's a container, recurse
 		elif isinstance(obj, LTFigure):
@@ -110,7 +103,6 @@ def parse_words(lt_objs):
                                         text=o.get_text()
                                         #print(text)
                                         if text.strip():
-                                                #print('test')
                                                 word = ''
                                                 #iterate through characters
                                                 for c in  o._objs:
@@ -144,16 +136,14 @@ def parse_words(lt_objs):
                                                                 word = ''
              
                                 textboxnum = textboxnum + 1
-                                        
-                                                                        
+                                                                                         
                 # if it's a container, recurse
                 elif isinstance(obj, LTFigure):
                         parse_words(obj._objs)
 
                 objectnum = objectnum + 1
 
-
-for d, entry in enumerate(entries[150:]):
+for d, entry in enumerate(entries[:50]):
 	print(i)
 
 	doc = entry
@@ -167,7 +157,6 @@ for d, entry in enumerate(entries[150:]):
 
 	# Store the parsed content in PDFDocument object
 	document = PDFDocument(parser, password)
-
 		
 	# Create PDFResourceManager object that stores shared resources such as fonts or images
 	rsrcmgr = PDFResourceManager()
@@ -193,22 +182,11 @@ for d, entry in enumerate(entries[150:]):
 		# The device renders the layout from interpreter
 		layout = device.get_result()
 
-		# for lobj in layout:
-			
-		# 	if isinstance(lobj, LTTextBox):
-		# 		x, y, text = lobj.bbox[0], lobj.bbox[3], lobj.get_text()
-		# 		print('At %r is text: %s' % ((x, y), text))
-
+		# call function to parse on character level
 		parse_words(layout._objs)
-		
-		#print(layout._objs)
-
-		# extract text from this object
+	
+		# call function to parse on text box level
 		#parse_obj(layout._objs)
-		# # Out of the many LT objects within layout, we are interested in LTTextBox and LTTextLine
-		# for lt_obj in layout:
-		# 	if isinstance(lt_obj, LTTextBox) or isinstance(lt_obj, LTTextLine):
-		# 		extracted_text += lt_obj.get_text()
 				
 	#close the pdf file
 	fp.close()
@@ -220,22 +198,13 @@ df = pd.DataFrame(
 	{
 	 'doc': docs,
 	 'Page': pages,
-         'Xcord_first': xcords_first,
-         'Ycord_first': ycords_first,
+	 'Ycord_first': ycords_first,
+     'Xcord_first': xcords_first,
 	 'Object': objects,
-         'Textbox': textboxes,
+     'Textbox': textboxes,
 	 'word': words
-
     })
 
-#s = df['Content'].str.split(' ').apply(pd.Series, 1).stack()
-#s.index = s.index.droplevel(-1)
-#s.name = 'Content'
+df = df.sort_values(['doc','Page','Ycord_first','Xcord_first'],ascending=[True,True,False,True])
 
-#del df['Content']
-#df = df.join(s)
-
-
-df.to_csv('data_150_.csv', index=False, encoding='utf-8-sig')
-
-print('test')
+df.to_csv('data_0_50_ordered.csv', index=False, encoding='utf-8-sig')
