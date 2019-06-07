@@ -3,6 +3,7 @@
 
 from datetime import datetime
 import pandas as pd
+import numpy as np
 from nltk import FreqDist
 from nltk.corpus import stopwords
 import os 
@@ -11,21 +12,28 @@ import os
 ospath =  os.path.dirname(__file__) 
 
 #specify relative path to data files
-datadir = 'data/words_detected/'
+datadir = 'data/words_detected_ordered/'
 
 #full path to data files
 datapath = os.path.join(ospath, datadir)
 
 #read raw data csv
-data = pd.read_csv(datapath + 'data_0_50.csv')
+data = pd.read_csv(datapath + 'data_0_50_avg_ordered.csv')
+
+data['date_nr'] = np.nan
+data['date_type'] = np.nan
 
 #get list of all words
-words = list(data.loc[:122,'word'])
+words = list(data.loc[:3000,'word'])
 
-dates = list()
+#date_indices= list()
+
+index = -1
 
 for s in words:
-    s = str (s)
+    print (index)
+    index += 1
+    s = str(s)
     for fmt in (#all short/long  combinations with dot format
                 '%d.%m.%Y', '%d.%m.%y', '%w.%m.%Y', '%w.%m.%y', '%d.%-m.%Y', '%d.%-m.%y','%w.%-m.%Y','%w.%-m.%y', 
                 '%Y.%m.%d', '%y.%m.%d', '%Y.%m.%w', '%y.%m.%w', '%Y.%-m.%d', '%y.%-m.%d','%Y.%-m.%w','%y.%-m.%w',
@@ -39,15 +47,32 @@ for s in words:
                 '%d. %b %y', '%d %b %y', '%d. %B %y', '%d %B %y', '%w. %b %y', '%w %b %y', '%w. %B %y', '%w %B %y'):
         try:
             date = datetime.strptime(s, fmt).date()
+            data.loc[index, 'date_nr'] = date
+            
+            type = str(data.loc[index-1, 'word']).lower()
+            if type.find('datum') != -1:
+                data.loc[index, 'date_type'] = type
+            else:  
+                type =''
+                for i in range(3,1): type += str(data.loc[index-i, 'word']).lower()
+                data.loc[index, 'date_type'] = type
             break
         except ValueError:
-            date = 'None'
+            continue
+            
 
-    dates.append(date)
+    
 
-isDateColumn = pd.DataFrame ({'IsDate' :dates})
-data ['IsDate'] = isDateColumn
+# Suche nur auf erster Seite + erstem Wort davor das Datum enthält
+
+#Add to csv
+'''isDateColumn = pd.DataFrame ({'IsDate' :dates})
+data ['IsDate'] = isDateColumn'''
+
 data.to_csv(datapath + 'data_dates_identified_0_50_.csv', index=False, encoding='utf-8-sig')
+
+print (data.date_type.unique())
+
 
 
 
