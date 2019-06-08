@@ -154,10 +154,10 @@ for i in range(16):
 
 
 # fill in identified labels in data
-data['label'] = '0'
+data['chapter label'] = '0'
 for i in range(16):
     for j in cap_chapter[i+1]:
-        data.loc[j,'label'] = 'Header Chapter ' + str(i+1)
+        data.loc[j,'chapter label'] = 'Header Chapter ' + str(i+1)
 
 data.to_csv('chapter_identified.csv', index=False, encoding='utf-8-sig')
 
