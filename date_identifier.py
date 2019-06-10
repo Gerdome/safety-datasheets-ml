@@ -24,7 +24,7 @@ data['date_nr'] = np.nan
 data['date_type'] = np.nan
 
 #get list of all words
-words = list(data.loc[:3000,'word'])
+words = list(data.loc[:2000,'word'])
 
 #date_indices= list()
 
@@ -54,16 +54,12 @@ for s in words:
                 data.loc[index, 'date_type'] = type
             else:  
                 type =''
-                for i in range(3,1): type += str(data.loc[index-i, 'word']).lower()
+                for i in range(5,0,-1): 
+                    type += str(data.loc[index-i, 'word']).lower() + ' '
                 data.loc[index, 'date_type'] = type
             break
         except ValueError:
             continue
-            
-
-    
-
-# Suche nur auf erster Seite + erstem Wort davor das Datum enthält
 
 #Add to csv
 '''isDateColumn = pd.DataFrame ({'IsDate' :dates})
