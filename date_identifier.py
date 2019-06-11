@@ -20,7 +20,7 @@ datapath = os.path.join(ospath, datadir)
 data = pd.read_csv(datapath + 'data_0_50_avg_ordered.csv', encoding='utf-8-sig')
 
 #Number of entities in dataframe before preprocessing
-print (data.shape)
+print (data.head())
 
 #Labels
 date_labels = {
@@ -87,6 +87,7 @@ for row in data.loc[data['Page'] == 1, ['word']].itertuples(index=True):
 
                 #search in string for label key words
                 temp = []
+                indexlabel_list = []
                 for key, value in date_labels.items ():
                     for i in value:
                         temp.append((key, date_str.find(i)))
@@ -95,13 +96,28 @@ for row in data.loc[data['Page'] == 1, ['word']].itertuples(index=True):
                     date_label = max(temp, key=itemgetter(1))[0]
                 else:
                     date_label = 'Nicht zuordbar'
+                # create label in working csv
                 data.loc[row.Index, 'date_cat'] = date_label
+                # save label in list for final data
+                indexlabel_list.append(int(data.loc[row.Index, 'index']), date_label)
             break
 
         except (ValueError, TypeError) as e:
             continue
 
+#Create separate file with working data and detected labels
 data.to_csv(os.path.join(ospath, 'data/labeled/dates_identified_0_50_.csv'), encoding='utf-8-sig')
+
+# match labels with final data: fill in identified labels in data
+final_data = pd.read_csv(os.path.join(ospath, 'data/labeled/chapter_identified.csv)', encoding='utf-8-sig'))
+
+data['chapter label'] = '0'
+for i in range(16):
+    for j in cap_chapter[i+1]:
+        data.loc[j,'chapter label'] = 'Header Chapter ' + str(i+1)
+
+data.to_csv('chapter_identified.csv', index=False, encoding='utf-8-sig')
+
 
 '''
 1. Druckdatum/Erstellung
