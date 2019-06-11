@@ -11,16 +11,13 @@ from operator import itemgetter
 ospath =  os.path.dirname(__file__) 
 
 #specify relative path to data files
-datadir = 'data/words_detected_ordered/'
+datadir = 'data/labeled/'
 
 #full path to data files
 datapath = os.path.join(ospath, datadir)
 
 #read raw data csv
-data = pd.read_csv(datapath + 'data_0_50_avg_ordered.csv', encoding='utf-8-sig')
-
-#Number of entities in dataframe before preprocessing
-print (data.head())
+data = pd.read_csv(datapath + 'chapter_identified.csv', encoding='utf-8-sig', index_col=0)
 
 #Labels
 date_labels = {
@@ -52,8 +49,8 @@ data['date_nr'] = np.nan
 data['date_string'] = np.nan
 data['date_cat'] = np.nan
 
-#Number of enities in dataframe after preprocessing
-print (data.shape)
+# List for data aggregation
+indexlabel_list = []
 
 #Iterrate through dataframe
 for row in data.loc[data['Page'] == 1, ['word']].itertuples(index=True):
@@ -87,7 +84,6 @@ for row in data.loc[data['Page'] == 1, ['word']].itertuples(index=True):
 
                 #search in string for label key words
                 temp = []
-                indexlabel_list = []
                 for key, value in date_labels.items ():
                     for i in value:
                         temp.append((key, date_str.find(i)))
@@ -99,7 +95,7 @@ for row in data.loc[data['Page'] == 1, ['word']].itertuples(index=True):
                 # create label in working csv
                 data.loc[row.Index, 'date_cat'] = date_label
                 # save label in list for final data
-                indexlabel_list.append(int(data.loc[row.Index, 'index']), date_label)
+                indexlabel_list.append((int(data.loc[row.Index, 'index']), date_label))
             break
 
         except (ValueError, TypeError) as e:
@@ -108,15 +104,19 @@ for row in data.loc[data['Page'] == 1, ['word']].itertuples(index=True):
 #Create separate file with working data and detected labels
 data.to_csv(os.path.join(ospath, 'data/labeled/dates_identified_0_50_.csv'), encoding='utf-8-sig')
 
+
 # match labels with final data: fill in identified labels in data
-final_data = pd.read_csv(os.path.join(ospath, 'data/labeled/chapter_identified.csv)', encoding='utf-8-sig'))
+final_data = pd.read_csv(datapath + 'chapter_identified.csv', encoding='utf-8-sig', index_col=0)
 
-data['chapter label'] = '0'
-for i in range(16):
-    for j in cap_chapter[i+1]:
-        data.loc[j,'chapter label'] = 'Header Chapter ' + str(i+1)
 
-data.to_csv('chapter_identified.csv', index=False, encoding='utf-8-sig')
+for i in indexlabel_list:
+    if final_data.loc[i[0],'label'] != '0':
+        print ('!!!!!!!!!!!!!!!!' + i[1])
+    else:
+        print (i)
+        final_data.loc[i[0],'label'] = i[1]
+
+final_data.to_csv(os.path.join(ospath, 'data/labeled/dates+chapter_identified_0_50_.csv'), encoding='utf-8-sig')
 
 
 '''
