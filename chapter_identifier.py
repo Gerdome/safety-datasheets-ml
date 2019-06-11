@@ -13,7 +13,7 @@ datadir = 'data/words_detected_ordered/'
 datapath = os.path.join(ospath, datadir)
 
 #read raw data csv
-data = pd.read_csv(datapath + 'data_0_50_avg_ordered.csv', dtype=str)
+data = pd.read_csv(datapath + 'data_0_50_avg_ordered.csv', dtype=str, index_col = 0)
 
 #get list of all words
 words = list(data['word'])
@@ -154,10 +154,10 @@ for i in range(16):
 
 
 # fill in identified labels in data
-data['chapter label'] = '0'
+data['label'] = '0'
 for i in range(16):
     for j in cap_chapter[i+1]:
-        data.loc[j,'chapter label'] = 'Header Chapter ' + str(i+1)
+        data.loc[j,'label'] = 'Header Chapter ' + str(i+1)
 
-data.to_csv('chapter_identified.csv', index=False, encoding='utf-8-sig')
+data.to_csv('chapter_identified.csv', encoding='utf-8-sig')
 
