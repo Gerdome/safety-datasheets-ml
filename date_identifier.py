@@ -17,7 +17,7 @@ datadir = 'data/words_detected_ordered/'
 datapath = os.path.join(ospath, datadir)
 
 #read raw data csv
-data = pd.read_csv(datapath + 'data_0_50_avg_ordered.csv')
+data = pd.read_csv(datapath + 'data_0_50_avg_ordered.csv', encoding='utf-8-sig')
 
 #Number of entities in dataframe before preprocessing
 print (data.shape)
@@ -101,7 +101,7 @@ for row in data.loc[data['Page'] == 1, ['word']].itertuples(index=True):
         except (ValueError, TypeError) as e:
             continue
 
-data.to_csv(datapath + 'data_dates_identified_0_50_.csv')
+data.to_csv(os.path.join(ospath, 'data/labeled/dates_identified_0_50_.csv'), encoding='utf-8-sig')
 
 '''
 1. Druckdatum/Erstellung
