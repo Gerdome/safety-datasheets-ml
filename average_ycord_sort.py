@@ -45,4 +45,4 @@ df['ycord_average'] = yc_new
 
 df = df.sort_values(['doc','Page','ycord_average','Xcord_first'],ascending=[True,True,False,True])
 
-df.to_csv('data_0_50_avg_ordered.csv', index=False, encoding='utf-8-sig')
+df.to_csv(os.path.join(ospath,'data/words_detected_ordered/data_0_50_avg_ordered.csv'))
