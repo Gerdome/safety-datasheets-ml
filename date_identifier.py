@@ -1,12 +1,11 @@
-#import datefinder
-#import dateutil.parser as dparser
-
 from datetime import datetime
 import pandas as pd
 import numpy as np
 from nltk import FreqDist
 from nltk.corpus import stopwords
 import os 
+import re
+from operator import itemgetter
 
 #set directory path of current script
 ospath =  os.path.dirname(__file__) 
@@ -20,20 +19,45 @@ datapath = os.path.join(ospath, datadir)
 #read raw data csv
 data = pd.read_csv(datapath + 'data_0_50_avg_ordered.csv')
 
+#Number of entities in dataframe before preprocessing
+print (data.shape)
+
+#Labels
+date_labels = {
+    #1. Druckdatum/Erstellung
+    'Druck':  ['druck', 'ausgabe', 'ausstellung'],
+    #2. Überarbeitungsdatum
+    'Überarbeitung':  ['überarbeit', 'änderung', 'revision', 'bearbeitung'],
+    #3. Datum alte Version
+    'Vorgänger':  ['ersetzt', 'ersatz', 'fassung'],
+    #4. Gültigkeitsdatum
+    'Gültig':  ['kraft'],
+    #5. Nicht zuordbar
+}
+
+#Preprocessing
+#Convert all to lower case
+data ['word'] = data['word'].str.lower()
+#Delete non-alpha numeric values at begining and end of words
+data ['word'] = data['word'].replace(r"^\W+|\W+$", "", regex=True)
+#Delete empty cells
+data ['word'] = data['word'].replace('', np.nan)
+data.dropna(subset=['word'],inplace=True)
+
+#Update work index + save old index
+data.reset_index(inplace=True)
+
+#Add new columns for feature generation
 data['date_nr'] = np.nan
-data['date_type'] = np.nan
+data['date_string'] = np.nan
+data['date_cat'] = np.nan
 
-#get list of all words
-words = list(data.loc[:2000,'word'])
+#Number of enities in dataframe after preprocessing
+print (data.shape)
 
-#date_indices= list()
-
-index = -1
-
-for s in words:
-    print (index)
-    index += 1
-    s = str(s)
+#Iterrate through dataframe
+for row in data.loc[data['Page'] == 1, ['word']].itertuples(index=True):
+    print (row)
     for fmt in (#all short/long  combinations with dot format
                 '%d.%m.%Y', '%d.%m.%y', '%w.%m.%Y', '%w.%m.%y', '%d.%-m.%Y', '%d.%-m.%y','%w.%-m.%Y','%w.%-m.%y', 
                 '%Y.%m.%d', '%y.%m.%d', '%Y.%m.%w', '%y.%m.%w', '%Y.%-m.%d', '%y.%-m.%d','%Y.%-m.%w','%y.%-m.%w',
@@ -44,62 +68,83 @@ for s in words:
                 '%d/%m/%Y', '%d/%m/%y', '%w/%m/%Y', '%w/%m/%y', '%d/%-m/%Y', '%d/%-m/%y','%w/%-m/%Y','%w/%-m/%y',
                 '%Y/%m/%d', '%y/%m/%d', '%Y/%m/%w', '%y/%m/%w', '%Y/%-m/%d', '%y/%-m/%d','%Y/%-m/%w','%y/%-m/%w',
                 #all integer/text combinations 
-                '%d. %b %y', '%d %b %y', '%d. %B %y', '%d %B %y', '%w. %b %y', '%w %b %y', '%w. %B %y', '%w %B %y'):
+                '%d. %b %y', '%d %b %y', '%d. %B %y', '%d %B %y', '%w. %b %y', '%w %b %y', '%w. %B %y', '%w %B %y'
+                ):
         try:
-            date = datetime.strptime(s, fmt).date()
-            data.loc[index, 'date_nr'] = date
+            s = str(row.word)
             
-            type = str(data.loc[index-1, 'word']).lower()
-            if type.find('datum') != -1:
-                data.loc[index, 'date_type'] = type
-            else:  
-                type =''
+            #Try to parse string in date
+            date = datetime.strptime(s, fmt).date()
+
+            #Prevent picking wrong dates
+            if date < date.today():
+                data.loc[row.Index, 'date_nr'] = date
+                #Catch 5 words before date
+                date_str = ''
                 for i in range(5,0,-1): 
-                    type += str(data.loc[index-i, 'word']).lower() + ' '
-                data.loc[index, 'date_type'] = type
+                    date_str += str(data.loc[row.Index-i, 'word']) + ' '
+                data.loc[row.Index, 'date_string'] = date_str
+
+                #search in string for label key words
+                temp = []
+                for key, value in date_labels.items ():
+                    for i in value:
+                        temp.append((key, date_str.find(i)))
+                #if substring was found value is >= 0
+                if max(temp, key=itemgetter(1))[1] >= 0:
+                    date_label = max(temp, key=itemgetter(1))[0]
+                else:
+                    date_label = 'Nicht zuordbar'
+                data.loc[row.Index, 'date_cat'] = date_label
             break
-        except ValueError:
+
+        except (ValueError, TypeError) as e:
             continue
 
-#Add to csv
-'''isDateColumn = pd.DataFrame ({'IsDate' :dates})
-data ['IsDate'] = isDateColumn'''
-
-data.to_csv(datapath + 'data_dates_identified_0_50_.csv', index=False, encoding='utf-8-sig')
-
-print (data.date_type.unique())
-
-
-
-
-
+data.to_csv(datapath + 'data_dates_identified_0_50_.csv')
 
 '''
-#Detects single numbers as Date
-for i in words:
-    i = str(i)
-    try:
-        x = dparser.parse(i, dayfirst = True)
+1. Druckdatum/Erstellung
+druckdatum
+ausgabedatum
+austellungsdatum
+gedruckt am:
+pdf-druckdatum:
 
-    except ValueError:
-        x = None
+2. Überarbeitung
+überarbeitungsdatum
+überarbeitet am:
+änderungsdatum:
+datum der revision
+überarbeitet
+bearbeitungsdatum :
+Überarbeitet am / Version:
+datum / überarbeitet am:
 
-    dates.append(x)
+3. Alte version
+Ersetzt Datum:
+ersatz für das datenblatt von:
+ersetzt fassung vom / version:
+ersetzt
+ersetzt fassung vom version 
 
-print (dates)
-'''
+4. Gültigkeitsdatum
+tritt in kraft ab
 
-'''
-#Returns unclear output
-for i in words:
-    i = str(i)
-    try:
-        x = datefinder.find_dates(i)
+falls keine Kategorie: nicht zuordbar
 
-    except ValueError:
-        x = None
+if date < date.today():
+                data.loc[row.Index, 'date_nr'] = date
+                date_str = str(data.loc[row.Index-1, 'word']).lower()
+                
+                
+                if date_str.find('datum') != -1:
+                    data.loc[row.Index, 'date_string'] = date_str
+                else:  
+                    date_str =''
+                    for i in range(5,0,-1): 
+                        date_str += str(data.loc[row.Index-i, 'word']).lower() + ' '
+                    data.loc[row.Index, 'date_string'] = date_str
+            break
 
-    dates.append(x)
-
-print (dates)
 '''
