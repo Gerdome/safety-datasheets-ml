@@ -116,7 +116,10 @@ for i in indexlabel_list:
         print (i)
         final_data.loc[i[0],'label'] = i[1]
 
-final_data.to_csv(os.path.join(ospath, 'data/labeled/dates+chapter_identified_0_50_.csv'), encoding='utf-8-sig')
+#Delete after test
+#final_data.drop(['Ycord_first','Object','Textbox'], axis=1)
+
+final_data.to_csv(os.path.join(ospath, 'data/labeled/dates+chapter_identified_0_50.csv'), encoding='utf-8-sig')
 
 
 '''
