@@ -8,7 +8,7 @@ import re
 ospath =  os.path.dirname(__file__) 
 
 #specify relative path to data files
-datadir = 'data/words_detected_ordered/'
+datadir = 'data/1_working/'
 
 #full path to data files
 datapath = os.path.join(ospath, datadir)
