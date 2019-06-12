@@ -8,13 +8,13 @@ from operator import itemgetter
 ospath =  os.path.dirname(__file__) 
 
 #specify relative path to data files
-datadir = 'data/labeled/'
+datadir = 'data/'
 
 #full path to data files
 datapath = os.path.join(ospath, datadir)
 
 #read raw data csv
-data = pd.read_csv(datapath + 'dates+chapter_identified_0_50_.csv', dtype=str, encoding='utf-8-sig', index_col=0)
+data = pd.read_csv(datapath + 'words_detected_ordered/data_0_50_avg_ordered.csv', dtype=str, encoding='utf-8-sig', index_col=0)
 
 #Labels
 legal_forms = ['gmbh', 'ug', 'ag', 'gbr', 'e.k.', 'ohg', 'ohg', 'kg', 'se', 'lp', 'llp', 'llp', 'lllp', 'llc', 'lc', 'ltd. co', 'pllc', 'corp.', 'inc.']
@@ -50,7 +50,7 @@ for row in data.loc[data['Page'] == 1, ['word']].itertuples(index=True):
             break
 
 #Create separate file with working data and detected labels
-data.to_csv(os.path.join(ospath, 'data/labeled/company_identified_0_50_.csv'), encoding='utf-8-sig')
+data.to_csv(datapath + 'labeled/company_identified_0_50_.csv', encoding='utf-8-sig')
 
 
 
