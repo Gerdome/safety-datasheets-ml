@@ -16,9 +16,10 @@ datadir = 'data/'
 datapath = os.path.join(ospath, datadir)
 
 #read raw data csv
-data = pd.read_csv(datapath + 'labeled/dates+chapter_identified_0_50.csv', dtype=str, encoding='utf-8-sig', index_col=0)
+data = pd.read_csv(datapath + 'labeled/dates+chapter_identified_0_50_bad.csv', dtype=str, encoding='utf-8-sig', index_col=0)
 
-print (data.head())
+print (data.shape)
+
 #Labels
 legal_forms = ['gmbh', 'ug', 'ag', 'gbr', 'e.k.', 'ohg', 'ohg', 'kg', 'se', 'lp', 'llp', 'llp', 'lllp', 'llc', 'lc', 'ltd. co', 'pllc', 'corp.', 'inc.']
 #['GmbH', 'UG', 'AG', 'GbR', 'e.K.', 'OHG', 'ohg', 'KG', 'SE', 'LP', 'LLP', 'LLP', 'LLLP', 'LLC', 'LC', 'Ltd. Co', 'PLLC', 'Corp.', 'Inc.']
@@ -40,11 +41,11 @@ indexlabel_list = []
 
 print ('test')
 
-print (data.head())
-print (data.word)
+
 
 #Iterrate through dataframe
-for row in data.loc[data['Page'] == 1, ['word']].itertuples(index=True):
+#for row in data.loc[data['Page'] == 1, ['word']].itertuples(index=True):
+for row in data.loc[data['Page'] == 1, ['word']].iterrows():
     print (row)
     print('test')
     
