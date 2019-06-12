@@ -16,13 +16,13 @@ import os
 ospath =  os.path.dirname(__file__) 
 
 #specify relative path to data files
-datadir = 'data/words_detected_ordered/'
+datadir = 'data/labeled/'
 
 #full path to data files
 datapath = os.path.join(ospath, datadir)
 
 #read raw data csv
-data = pd.read_csv(datapath + 'data_0_50_avg_ordered.csv', dtype=str)
+data = pd.read_csv(datapath + 'chapter_identified.csv', dtype=str)
 
 
 #get list of all words
@@ -34,7 +34,7 @@ words = list(data['word'])
 
 #define dictionary (vgl. https://docs.google.com/document/d/1a4kwA13XB8EXB1CHJ8fBRW24CaJZvohraroD2Dyn204/edit#)
 
-
+'''
 #Problem 1
 verordnung_dict1 = {
     'Verordnung (EU) Nr.', 'Verordnung (EU)', 'Verordnung (EG) Nr.', 'Verordnung (EG)'
@@ -48,6 +48,9 @@ for c in verordnung_dict1:
         if words[i-1] == c:
              l1.append(i)
 
+'''
+
+'''
 #Problem 2
 verordnung_dict2 = {
     '(REACH)'
@@ -59,6 +62,16 @@ for c in verordnung_dict2:
     for i, e in enumerate(words):       
         if words[i-1] == c:
              l2.append(i)
+
+# fill in identified labels in data
+data['verordnung label'] = '0'
+for j in l2:
+    data.loc[j,'verordnung label'] = 'verordnung'
+
+
+data.to_csv('directive_identified.csv', index=False, encoding='utf-8-sig')
+'''
+
 
 
 #Problem 3
@@ -75,12 +88,12 @@ for c in verordnung_dict3:
              l3.append(i)
 
 
-#Merge lists
+
 
 
 # fill in identified labels in data
 data['verordnung label'] = '0'
-for j in l2:
+for j in l3:
     data.loc[j,'verordnung label'] = 'verordnung'
 
 
@@ -89,7 +102,4 @@ data.to_csv('directive_identified.csv', index=False, encoding='utf-8-sig')
 
 
 
-'''
-v = list(data['verordnung label'])
-print (v)
-'''
+#Merge lists
