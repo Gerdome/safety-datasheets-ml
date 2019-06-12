@@ -16,7 +16,7 @@ datadir = 'data/'
 datapath = os.path.join(ospath, datadir)
 
 #read raw data csv
-data = pd.read_csv(datapath + 'labeled/dates+chapter_identified_0_50_bad.csv', dtype=str, encoding='utf-8-sig', index_col=0)
+data = pd.read_csv(datapath + 'labeled/dates+chapter_identified_0_50_Gregor.csv', dtype=str, encoding='utf-8-sig', index_col=0)
 
 print (data.shape)
 
