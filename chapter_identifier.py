@@ -44,6 +44,7 @@ for c in range(16):
     cap_chapters1[c+1] = l1
 
 
+
 ##############  Identify upper case headers  ############## 
 # --> identify ones without ":" after ABSCHNITT (only a few)
 
@@ -132,13 +133,13 @@ for c in range(16):
              l1.append(i)
     cap_chapters5[c+1] = l1
 
+
 for c in range(16):
     l1 = []
     for i, e in enumerate(words):       
         if words[i] == header_cap_words[c+1] and str(words[i - 1]) == (str(c+1) ):
              l1.append(i)
     cap_chapters6[c+1] = l1
-
 
 
 ## Combine all identifiers
