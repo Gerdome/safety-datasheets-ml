@@ -11,13 +11,13 @@ from operator import itemgetter
 ospath =  os.path.dirname(__file__) 
 
 #specify relative path to data files
-datadir = 'data/labeled/'
+datadir = 'data/1_working/'
 
 #full path to data files
 datapath = os.path.join(ospath, datadir)
 
 #read raw data csv
-data = pd.read_csv(datapath + 'chapter_identified.csv', encoding='utf-8-sig', index_col=0)
+data = pd.read_csv(datapath + 'reduced_columns.csv', encoding='utf-8-sig', index_col=0)
 
 #Labels
 date_labels = {
@@ -102,68 +102,19 @@ for row in data.loc[data['Page'] == 1, ['word']].itertuples(index=True):
             continue
 
 #Create separate file with working data and detected labels
-data.to_csv(os.path.join(ospath, 'data/labeled/dates_identified_0_50_.csv'), encoding='utf-8-sig')
+#data.to_csv(os.path.join(ospath, 'data/labeled/dates_identified_0_50_.csv'), encoding='utf-8-sig')
 
 
 # match labels with final data: fill in identified labels in data
-final_data = pd.read_csv(datapath + 'chapter_identified.csv', encoding='utf-8-sig', index_col=0)
+final_data = pd.read_csv(datapath + 'reduced_columns.csv', encoding='utf-8-sig', index_col=0)
 
+# Create label column
+data['dates'] = np.nan
 
 for i in indexlabel_list:
-    if final_data.loc[i[0],'label'] != '0':
-        print ('!!!!!!!!!!!!!!!!' + i[1])
-    else:
-        print (i)
-        final_data.loc[i[0],'label'] = i[1]
+        final_data.loc[i[0],'dates'] = i[1]
 
 #Delete after test
 #final_data.drop(['Ycord_first','Object','Textbox'], axis=1)
 
-final_data.to_csv(os.path.join(ospath, 'data/labeled/dates+chapter_identified_0_50.csv'), encoding='utf-8-sig')
-
-
-'''
-1. Druckdatum/Erstellung
-druckdatum
-ausgabedatum
-austellungsdatum
-gedruckt am:
-pdf-druckdatum:
-
-2. Überarbeitung
-überarbeitungsdatum
-überarbeitet am:
-änderungsdatum:
-datum der revision
-überarbeitet
-bearbeitungsdatum :
-Überarbeitet am / Version:
-datum / überarbeitet am:
-
-3. Alte version
-Ersetzt Datum:
-ersatz für das datenblatt von:
-ersetzt fassung vom / version:
-ersetzt
-ersetzt fassung vom version 
-
-4. Gültigkeitsdatum
-tritt in kraft ab
-
-falls keine Kategorie: nicht zuordbar
-
-if date < date.today():
-                data.loc[row.Index, 'date_nr'] = date
-                date_str = str(data.loc[row.Index-1, 'word']).lower()
-                
-                
-                if date_str.find('datum') != -1:
-                    data.loc[row.Index, 'date_string'] = date_str
-                else:  
-                    date_str =''
-                    for i in range(5,0,-1): 
-                        date_str += str(data.loc[row.Index-i, 'word']).lower() + ' '
-                    data.loc[row.Index, 'date_string'] = date_str
-            break
-
-'''
+final_data.to_csv(os.path.join(ospath, 'data/1_working/dates_identified_0_50.csv'), encoding='utf-8-sig')
