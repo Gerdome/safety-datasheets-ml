@@ -96,7 +96,7 @@ for row in data.loc[data['Page'] <= 2, ['word']].itertuples(index=True):
                 #Reverse order of strings
                 company_str_r = ' '.join(company_str.split(" ")[-1::-1])
                 #Set value for extracted company name
-                data.loc[row.Index-i+1:row.Index+1, 'company_name'] = company_str_r
+                data.loc[row.Index-i+1:row.Index, 'company_name'] = company_str_r
                 #Set indicator if word is part of company name
                 data.loc[row.Index-i+1:row.Index+1, 'company'] = 1
         #break from outer lf loop        
