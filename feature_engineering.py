@@ -11,23 +11,18 @@ from operator import itemgetter
 ospath =  os.path.dirname(__file__) 
 
 #specify relative path to data files
-datadir = 'data/labeled/'
+datadir = 'data/2_final/'
 
 #full path to data files
 datapath = os.path.join(ospath, datadir)
 
 #read raw data csv
-data = pd.read_csv(datapath + 'chapter_identified.csv', dtype=str, encoding='utf-8-sig', index_col=0)
+data = pd.read_csv(datapath + 'labeled_data.csv', dtype=str, encoding='utf-8-sig', index_col=0)
 
-words = list(data['word'])
-words = words[0:100]
-print(words)
-
-
+'''
 def word2features(sent, i):
-    print(sent)
+    print(i)
     word = str(sent[i])
-    print(word)
     #postag = sent[i][1]
 
     features = {
@@ -78,14 +73,54 @@ def sent2labels(sent):
 
 def sent2tokens(sent):
     return [token for token, postag, label in sent]
-
     
-features = sent2features(words)
-#y = [sent2labels(s) for s in sentences]
+'''
 
+words = list(data['word'])
 
-data = pd.DataFrame(features)
+features = {
+    'word.lower': [],
+    'word.isupper': [],
+    'word.istitle': [],
+    'word.isdigit': [],
 
-data.to_csv('test.csv', encoding='utf-8-sig')
+    'word[-1]': [],
+    '-1:word.lower': [],
+    '-1:word.istitle': [],
+    '-1:word.isupper': [],
+
+    'word[-2]': [],
+    'word[-3]': []
+}
+
+for i, w in enumerate(words):
+    features['word.lower'].append(str(w).lower())
+    features['word.isupper'].append(str(w).isupper())
+    features['word.istitle'].append(str(w).istitle())
+    features['word.isdigit'].append(str(w).isdigit())
+    if i > 3:
+        features['word[-1]'].append(str(words[i-1]))
+        features['word[-2]'].append(str(words[i-2]))
+        features['word[-3]'].append(str(words[i-3]))
+        features['-1:word.lower'].append(str(words[i-1]).lower())
+        features['-1:word.istitle'].append(str(words[i-1]).istitle())
+        features['-1:word.isupper'].append(str(words[i-1]).isupper())
+    else:
+        features['word[-1]'].append(np.nan)
+        features['word[-2]'].append(np.nan)
+        features['word[-3]'].append(np.nan)
+        features['-1:word.lower'].append(np.nan)
+        features['-1:word.istitle'].append(np.nan)
+        features['-1:word.isupper'].append(np.nan)
+        
+features = pd.DataFrame(features)
+
+print(features.shape)
+print(data.shape)
+
+final_data = pd.concat([data, features], axis=1, sort=False)
+    
+
+final_data.to_csv('final.csv', encoding='utf-8-sig')
 
 
