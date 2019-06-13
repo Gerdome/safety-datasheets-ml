@@ -6,7 +6,7 @@ import os
 ospath =  os.path.dirname(__file__) 
 
 #specify relative path to data files
-datadir = 'data/words_detected_ordered/data_0_50_ordered.csv'
+datadir = 'data/1_working/data_0_50_ordered.csv'
 
 #full path to data files
 datapath = os.path.join(ospath, datadir)
@@ -47,4 +47,4 @@ df = df.sort_values(['doc','Page','ycord_average','Xcord_first'],ascending=[True
 
 df.reset_index(inplace=True, drop = True)
 
-df.to_csv(os.path.join(ospath,'data/words_detected_ordered/data_0_50_avg_ordered.csv'), encoding ='utf-8-sig')
+df.to_csv(os.path.join(ospath,'data_0_50_avg_ordered.csv'), encoding ='utf-8-sig')
