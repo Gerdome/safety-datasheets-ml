@@ -1,6 +1,4 @@
 import pandas as pd
-from nltk import FreqDist
-from nltk.corpus import stopwords
 import numpy as np
 import os 
 import re
@@ -48,9 +46,6 @@ data ['word'] = data['word'].str.lower()
 data['company_name'] = np.nan
 #Add new colum for status if word is part of company name
 data['company'] = np.nan
-
-# List for data aggregation
-indexlabel_list = []
 
 #Loop through all rows in data
 for row in data.loc[data['Page'] <= 2, ['word']].itertuples(index=True):
