@@ -25,7 +25,7 @@ for l in labels:
 for l in labeldata:
     data[l] = labeldata[l]
     
-data['label'] = data[labels].max(1)
+data['label'] = data[labels].max(1) #Kurze ausgabe wenn er mehrere ungleich null findet 
 data = data.drop(labels, 1)
 
 
