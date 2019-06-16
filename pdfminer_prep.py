@@ -27,7 +27,7 @@ from pdfminer.pdfdevice import PDFDevice
 from pdfminer.pdfpage import PDFTextExtractionNotAllowed
 from pdfminer.layout import LAParams, LTTextBox, LTTextLine, LTTextBoxHorizontal, LTFigure, LTChar, LTText, LTAnno
 from pdfminer.converter import PDFPageAggregator
-
+import numpy as np
 import pandas as pd
 from nltk.tokenize import word_tokenize
 
@@ -46,7 +46,7 @@ from nltk.tokenize import word_tokenize
 ospath =  os.path.dirname(__file__) 
 
 #specify relative path to data files
-datadir = 'data/pdf/'
+datadir = 'data/3_pdf/'
 
 #full path to data files
 datapath = os.path.join(ospath, datadir)
@@ -69,6 +69,9 @@ words = []
 
 password = ""
 extracted_text = ""
+
+def hasNumbers(inputString):
+    return any(char.isdigit() for char in inputString)
 
 def parse_obj(lt_objs):
 	objectnum = 1
@@ -108,23 +111,66 @@ def parse_words(lt_objs):
                                                 for c in  o._objs:
                                                         #if it is a character
                                                         if isinstance(c, LTChar):
-                                                                #append until space
-                                                                word += str(c.get_text())
-                                                                #remember coords if its first char of word
-                                                                if len(word) == 1:
-                                                                        xcord_first = c.bbox[0]
-                                                                        ycord_first = c.bbox[1]
-                                                                # if space: append word to list (without the space) and start new word
-                                                                if c.get_text() == ' ':
-                                                                        words.append(word[:-1])
-                                                                        pages.append(pagenum)
-                                                                        xcords_first.append(xcord_first)
-                                                                        ycords_first.append(ycord_first)
-                                                                        docs.append(doc)
-                                                                        objects.append(objectnum)
-                                                                        textboxes.append(textboxnum)
-                                                                        word = ''
-                                                        #if it is a new line: append word to list and start new word
+                                                                #detect special character at end of words
+                                                                if c.get_text() in (')',':','%',';','('):
+                                                                    words.extend([word, str(c.get_text())])
+                                                                    pages.extend([pagenum, pagenum])
+                                                                    xcords_first.extend([xcord_first,c.bbox[0]])
+                                                                    ycords_first.extend([ycord_first,c.bbox[1]])
+                                                                    docs.extend([doc, doc])
+                                                                    objects.extend([objectnum, objectnum])
+                                                                    textboxes.extend([textboxnum, textboxnum])
+                                                                    word = ''
+                                                                # if / in between of numbers --> not a new token
+                                                                elif c.get_text() in ('/') and not word.isdigit() and not word == 'g':
+                                                                    words.extend([word, str(c.get_text())])
+                                                                    pages.extend([pagenum, pagenum])
+                                                                    xcords_first.extend([xcord_first,c.bbox[0]])
+                                                                    ycords_first.extend([ycord_first,c.bbox[1]])
+                                                                    docs.extend([doc, doc])
+                                                                    objects.extend([objectnum, objectnum])
+                                                                    textboxes.extend([textboxnum, textboxnum])
+                                                                    word = ''
+                                                                # if , in between of numbers --> not a new token
+                                                                elif c.get_text() in (',') and not word.isdigit():
+                                                                    words.extend([word, str(c.get_text())])
+                                                                    pages.extend([pagenum, pagenum])
+                                                                    xcords_first.extend([xcord_first,c.bbox[0]])
+                                                                    ycords_first.extend([ycord_first,c.bbox[1]])
+                                                                    docs.extend([doc, doc])
+                                                                    objects.extend([objectnum, objectnum])
+                                                                    textboxes.extend([textboxnum, textboxnum])
+                                                                    word = ''
+                                                                
+                                                                # take 'n.v' as an exception and check that . is not in between numbers or dates
+                                                                elif c.get_text() in ('.') and not hasNumbers(word) and not word == 'n':
+                                                                    words.extend([word, str(c.get_text())])
+                                                                    pages.extend([pagenum, pagenum])
+                                                                    xcords_first.extend([xcord_first,c.bbox[0]])
+                                                                    ycords_first.extend([ycord_first,c.bbox[1]])
+                                                                    docs.extend([doc, doc])
+                                                                    objects.extend([objectnum, objectnum])
+                                                                    textboxes.extend([textboxnum, textboxnum])
+                                                                    word = ''
+                                                                    
+                                                                else:
+                                                                    #append until space
+                                                                    word += str(c.get_text())
+                                                                    #remember coords if its first char of word
+                                                                    if len(word) == 1:
+                                                                            xcord_first = c.bbox[0]
+                                                                            ycord_first = c.bbox[1]
+                                                                    # if space and previous token was not space: append word to list (without the space) and start new word
+                                                                    if c.get_text() == ' ':
+                                                                            words.append(word[:-1])
+                                                                            pages.append(pagenum)
+                                                                            xcords_first.append(xcord_first)
+                                                                            ycords_first.append(ycord_first)
+                                                                            docs.append(doc)
+                                                                            objects.append(objectnum)
+                                                                            textboxes.append(textboxnum)
+                                                                            word = ''
+                                                        #if it is a new line and word is not empty: append word to list and start new word
                                                         if isinstance(c, LTAnno):
                                                                 words.append(word)
                                                                 pages.append(pagenum)
@@ -143,7 +189,7 @@ def parse_words(lt_objs):
 
                 objectnum = objectnum + 1
 
-for d, entry in enumerate(entries[:50]):
+for d, entry in enumerate(entries[:2]):
 	print(i)
 
 	doc = entry
@@ -207,4 +253,7 @@ df = pd.DataFrame(
 
 df = df.sort_values(['doc','Page','Ycord_first','Xcord_first'],ascending=[True,True,False,True])
 
-df.to_csv('data_0_50_ordered.csv', index=False, encoding='utf-8-sig')
+#delete empty tokens
+df = df[ df["word"] != ""]
+
+df.to_csv('data_0_10_1new.csv', index=False, encoding='utf-8-sig')
