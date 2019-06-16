@@ -60,6 +60,7 @@ xcord = []
 ycord = []
 xcords_first = []
 ycords_first = []
+font_size = []
 content = []
 docs = []
 objects = []
@@ -118,6 +119,7 @@ def parse_words(lt_objs):
                                                                     xcords_first.extend([xcord_first,c.bbox[0]])
                                                                     ycords_first.extend([ycord_first,c.bbox[1]])
                                                                     docs.extend([doc, doc])
+                                                                    font_size.extend([int(round(c.fontsize)),fontsize])
                                                                     objects.extend([objectnum, objectnum])
                                                                     textboxes.extend([textboxnum, textboxnum])
                                                                     word = ''
@@ -128,6 +130,7 @@ def parse_words(lt_objs):
                                                                     xcords_first.extend([xcord_first,c.bbox[0]])
                                                                     ycords_first.extend([ycord_first,c.bbox[1]])
                                                                     docs.extend([doc, doc])
+                                                                    font_size.extend([int(round(c.fontsize)),fontsize])
                                                                     objects.extend([objectnum, objectnum])
                                                                     textboxes.extend([textboxnum, textboxnum])
                                                                     word = ''
@@ -137,6 +140,7 @@ def parse_words(lt_objs):
                                                                     pages.extend([pagenum, pagenum])
                                                                     xcords_first.extend([xcord_first,c.bbox[0]])
                                                                     ycords_first.extend([ycord_first,c.bbox[1]])
+                                                                    font_size.extend([int(round(c.fontsize)),fontsize])
                                                                     docs.extend([doc, doc])
                                                                     objects.extend([objectnum, objectnum])
                                                                     textboxes.extend([textboxnum, textboxnum])
@@ -148,6 +152,7 @@ def parse_words(lt_objs):
                                                                     pages.extend([pagenum, pagenum])
                                                                     xcords_first.extend([xcord_first,c.bbox[0]])
                                                                     ycords_first.extend([ycord_first,c.bbox[1]])
+                                                                    font_size.extend([int(round(c.fontsize)),fontsize])
                                                                     docs.extend([doc, doc])
                                                                     objects.extend([objectnum, objectnum])
                                                                     textboxes.extend([textboxnum, textboxnum])
@@ -160,12 +165,14 @@ def parse_words(lt_objs):
                                                                     if len(word) == 1:
                                                                             xcord_first = c.bbox[0]
                                                                             ycord_first = c.bbox[1]
+                                                                            fontsize = c.fontsize
                                                                     # if space and previous token was not space: append word to list (without the space) and start new word
                                                                     if c.get_text() == ' ':
                                                                             words.append(word[:-1])
                                                                             pages.append(pagenum)
                                                                             xcords_first.append(xcord_first)
                                                                             ycords_first.append(ycord_first)
+                                                                            font_size.append(int(round(c.fontsize)))
                                                                             docs.append(doc)
                                                                             objects.append(objectnum)
                                                                             textboxes.append(textboxnum)
@@ -176,6 +183,7 @@ def parse_words(lt_objs):
                                                                 pages.append(pagenum)
                                                                 xcords_first.append(xcord_first)
                                                                 ycords_first.append(ycord_first)
+                                                                font_size.append(0)
                                                                 docs.append(doc)
                                                                 objects.append(objectnum)
                                                                 textboxes.append(textboxnum)
@@ -221,8 +229,11 @@ for d, entry in enumerate(entries[:2]):
 	interpreter = PDFPageInterpreter(rsrcmgr, device)
 
 	# Ok now that we have everything to process a pdf document, lets process it page by page
+	# process only first 3 pages 
 	for p ,page in enumerate(PDFPage.create_pages(document)):
-		pagenum = p + 1
+		pagenum = p + 1        
+		if pagenum == 4:
+			break
 		# As the interpreter processes the page stored in PDFDocument object
 		interpreter.process_page(page)
 		# The device renders the layout from interpreter
@@ -239,6 +250,11 @@ for d, entry in enumerate(entries[:2]):
 
 	i = i+1
 
+print(len(docs))
+print(len(font_size))
+
+print(font_size)
+
 #creat empty dataframe
 df = pd.DataFrame( 
 	{
@@ -246,6 +262,7 @@ df = pd.DataFrame(
 	 'Page': pages,
 	 'Ycord_first': ycords_first,
      'Xcord_first': xcords_first,
+     'font_size': font_size,
 	 'Object': objects,
      'Textbox': textboxes,
 	 'word': words
