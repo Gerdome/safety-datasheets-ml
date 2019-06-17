@@ -21,7 +21,7 @@ words = list(data['word'])
 
 version_dict = {
     'Versionsnummer', 'Version', 'Versionsnummer:' , 'Version:' , 'Revisions-Nr:' , 'Revisions-Nr',
-    'Revisions-nr' , 'Revisionsnummer' , 'Revisionsnummer:', 'Rev-Nr.:' , 'Rev-Nr:'
+    'Revisions-nr' , 'Revisionsnummer' , 'Revisionsnummer:', 'Rev-Nr.:' , 'Rev-Nr:' , 'Version-Nr'
 }
 
 l1 = []
@@ -30,23 +30,18 @@ for c in version_dict:
 
     for i, e in enumerate(words):       
         if words[i-1] == c:
-            if words[i] == '(Überarbeitung)': # Versionsnummer und in Klammern alte Versionsnummer
-                 if words[i+3] == ' ':
-                      l1.append(i+4)
-                 else:
-                      l1.append(i+3)
+            if words[i] == '(': # Versionsnummer und in Klammern alte Versionsnummer
+                 l1.append(i+4)
             elif words[i] == ':': # wenn zwischen Version und : Leerzeichen vorkommmt -> naechstes 
-                 l1.append(i+1)
-            elif words[i] == ' ': # wenn zwischen 'Version:' und Zahl zwei Leerzeichen -> naechstes
-                 l1.append(i+1)
-            elif words[i] == '': # wenn zwischen 'Version:' und Zahl zwei Leerzeichen -> naechstes
-                 l1.append(i+1)
-            elif len(str(words[i])) > 8: # wenn Uberarbeitet am / Version: Datum / VersNr
                  if words[i-4]== 'Überarbeitet':
                     l1.append(i+3)
+                 elif words[i-5] != 'Ersetzt' and words[i-3] != 'Ersetzt':
+                    l1.append(i+1)
+            elif words[i] == '.': 
+                   l1.append(i+2)
             else:
-                 if words[i-2] != '(ersetzt':
-                    l1.append(i)
+                 l1.append(i)
+            
 
 
 # fill in identified labels in data
