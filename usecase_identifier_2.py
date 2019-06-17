@@ -43,8 +43,9 @@ trigger_end = ['empfohlene ( r ) verwendungszweck ( e )',
                 'verwendung des stoffes / des gemisches', 
                 'verwendung des stoffs/des gemischs',
                 'funktions- oder verwendungskategorie',
-                'verwendungen, von denen abgeraten wird',
+                'verwendungen von denen abgeraten wird',
                 'abgeratene verwendungen',
+                'kontaktieren sie ihren lieferanten für weitere informationen über verwendungen',
                 'zur Zeit liegen keine Informationen hierzu vor', 
                 'keine weiteren relevanten informationen verfügbar',
                 '1.3 einzelheiten zum',
@@ -68,6 +69,11 @@ data['usecase_sep'] = np.nan
 
 index = 1
 length = len(data.index)-1
+
+data_iter = pd.DataFrame(data.loc[data['special_char'] <1])
+#Update work index + save old index
+data_iter.reset_index(inplace=True)
+
 
 while index < length:
     row = data.loc[index, :]
