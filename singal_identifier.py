@@ -15,7 +15,7 @@ datadir = 'data/1_working/'
 datapath = os.path.join(ospath, datadir)
 
 #read raw data csv
-data = pd.read_csv(datapath + 'reduced_columns.csv', encoding='utf-8-sig', index_col=0)
+data = pd.read_csv(datapath + 'data_0_50_avg_ordered.csv', encoding='utf-8-sig', index_col=0)
 
 #Labels
 reach_id = ['signalwort', 'warnhinweise']
@@ -51,17 +51,18 @@ for i in success:
     if i in docs:
         docs.remove(i)
 
-print ('--------------------------------------')
-
-cmd = 'open $(find ' + ospath + '/data/3_pdf -name '
-for i in docs:
-    cmd = cmd + '"' + i + '"' ' -o '
-cmd = cmd[:-4] + ')'
-print(cmd)
-
-print ('--------------------------------------')
+print ('---------------Undetected PDFs-----------------------')
 
 for i in docs:
     print (i)
+
+print ('-----------------Open undected PDFS-------------------')
+
+cmd = 'open $(find ' + ospath + '/data/3_pdf -name '
+for i in docs:
+    cmd = cmd + i + ' -o -name '
+cmd = cmd[:-10] + ')'
+print(cmd)
+
 
 data.to_csv(datapath + 'signal_identified.csv', encoding='utf-8-sig')
