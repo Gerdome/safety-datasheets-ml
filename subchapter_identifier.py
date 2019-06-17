@@ -22,17 +22,25 @@ subschapter = ( '1.1','1.2','1.3','1.4',
                 '2.1','2.2','2.3',
                 '3.1','3.2')
 
-subchapter_first_words = ('Produktidentifikator','1.2','1.3','1.4',
-                '2.1','2.2','2.3',
-                '3.1','3.2')
+subchapter_first_words = {'Produktidentifikator' : '',
+                        'Relevante' : 'identifizierte',
+                        'Einzelheiten':'zum',
+                        'Notrufnummer': '',
+                        'Einstufung' : 'des',
+                        'Kennzeichnungselemente': '',
+                        'Sonstige': 'Gefahren',
+                        'Stoffe':''
+                        ,'Gemische': ''}
 
 #Last words of subchapter headers as stop words
 stop_list = ['Produktidentifikator','1272/2008']
 
 
+
 #Loop through all rows in data
-for row in data.loc[:10000, ['word']].itertuples(index=True):
-    if row.word in subschapter:
+for row in data.loc[:90000, ['word']].itertuples(index=True):
+    #either subchapter numbers or (first words of subchapter AND and the beginning of the line AND Bold)
+    if row.word in subschapter or (row.word in subchapter_first_words and data.loc[row.Index-i,'ycord_average'] != data.loc[row.Index,'ycord_average'] and 'Bold' in data.loc[row.Index,'font_name']):
             print (row)
             #first token of subchapter header 
            
