@@ -61,6 +61,7 @@ ycord = []
 xcords_first = []
 ycords_first = []
 font_size = []
+font_names = []
 content = []
 docs = []
 objects = []
@@ -119,7 +120,8 @@ def parse_words(lt_objs):
                                                                     xcords_first.extend([xcord_first,c.bbox[0]])
                                                                     ycords_first.extend([ycord_first,c.bbox[1]])
                                                                     docs.extend([doc, doc])
-                                                                    font_size.extend([int(round(c.fontsize)),fontsize])
+                                                                    font_size.extend([fontsize,int(round(c.fontsize))])
+                                                                    font_names.extend([fontname,c.fontname])
                                                                     objects.extend([objectnum, objectnum])
                                                                     textboxes.extend([textboxnum, textboxnum])
                                                                     word = ''
@@ -130,7 +132,8 @@ def parse_words(lt_objs):
                                                                     xcords_first.extend([xcord_first,c.bbox[0]])
                                                                     ycords_first.extend([ycord_first,c.bbox[1]])
                                                                     docs.extend([doc, doc])
-                                                                    font_size.extend([int(round(c.fontsize)),fontsize])
+                                                                    font_size.extend([fontsize,int(round(c.fontsize))])
+                                                                    font_names.extend([fontname,c.fontname])
                                                                     objects.extend([objectnum, objectnum])
                                                                     textboxes.extend([textboxnum, textboxnum])
                                                                     word = ''
@@ -140,7 +143,8 @@ def parse_words(lt_objs):
                                                                     pages.extend([pagenum, pagenum])
                                                                     xcords_first.extend([xcord_first,c.bbox[0]])
                                                                     ycords_first.extend([ycord_first,c.bbox[1]])
-                                                                    font_size.extend([int(round(c.fontsize)),fontsize])
+                                                                    font_size.extend([fontsize,int(round(c.fontsize))])
+                                                                    font_names.extend([fontname,c.fontname])
                                                                     docs.extend([doc, doc])
                                                                     objects.extend([objectnum, objectnum])
                                                                     textboxes.extend([textboxnum, textboxnum])
@@ -152,7 +156,8 @@ def parse_words(lt_objs):
                                                                     pages.extend([pagenum, pagenum])
                                                                     xcords_first.extend([xcord_first,c.bbox[0]])
                                                                     ycords_first.extend([ycord_first,c.bbox[1]])
-                                                                    font_size.extend([int(round(c.fontsize)),fontsize])
+                                                                    font_size.extend([fontsize,int(round(c.fontsize))])
+                                                                    font_names.extend([fontname,c.fontname])
                                                                     docs.extend([doc, doc])
                                                                     objects.extend([objectnum, objectnum])
                                                                     textboxes.extend([textboxnum, textboxnum])
@@ -165,14 +170,16 @@ def parse_words(lt_objs):
                                                                     if len(word) == 1:
                                                                             xcord_first = c.bbox[0]
                                                                             ycord_first = c.bbox[1]
-                                                                            fontsize = c.fontsize
+                                                                            fontsize = int(round(c.fontsize))
+                                                                            fontname = c.fontname
                                                                     # if space and previous token was not space: append word to list (without the space) and start new word
                                                                     if c.get_text() == ' ':
                                                                             words.append(word[:-1])
                                                                             pages.append(pagenum)
                                                                             xcords_first.append(xcord_first)
                                                                             ycords_first.append(ycord_first)
-                                                                            font_size.append(int(round(c.fontsize)))
+                                                                            font_size.append(fontsize)
+                                                                            font_names.append(fontname)
                                                                             docs.append(doc)
                                                                             objects.append(objectnum)
                                                                             textboxes.append(textboxnum)
@@ -183,7 +190,8 @@ def parse_words(lt_objs):
                                                                 pages.append(pagenum)
                                                                 xcords_first.append(xcord_first)
                                                                 ycords_first.append(ycord_first)
-                                                                font_size.append(0)
+                                                                font_size.append(fontsize)
+                                                                font_names.append(fontname)
                                                                 docs.append(doc)
                                                                 objects.append(objectnum)
                                                                 textboxes.append(textboxnum)
@@ -197,7 +205,7 @@ def parse_words(lt_objs):
 
                 objectnum = objectnum + 1
 
-for d, entry in enumerate(entries[:2]):
+for d, entry in enumerate(entries[:50]):
 	print(i)
 
 	doc = entry
@@ -252,19 +260,18 @@ for d, entry in enumerate(entries[:2]):
 
 print(len(docs))
 print(len(font_size))
-
-print(font_size)
-
+print(len(font_names))
 #creat empty dataframe
 df = pd.DataFrame( 
 	{
 	 'doc': docs,
 	 'Page': pages,
 	 'Ycord_first': ycords_first,
-     'Xcord_first': xcords_first,
-     'font_size': font_size,
+        'Xcord_first': xcords_first,
+        'font_size': font_size,
+        'font_name': font_names,
 	 'Object': objects,
-     'Textbox': textboxes,
+        'Textbox': textboxes,
 	 'word': words
     })
 
@@ -273,4 +280,4 @@ df = df.sort_values(['doc','Page','Ycord_first','Xcord_first'],ascending=[True,T
 #delete empty tokens
 df = df[ df["word"] != ""]
 
-df.to_csv('data_0_10_1new.csv', index=False, encoding='utf-8-sig')
+df.to_csv('data_0_50_ordered.csv', index=False, encoding='utf-8-sig')
