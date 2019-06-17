@@ -18,7 +18,8 @@ datapath = os.path.join(ospath, datadir)
 data = pd.read_csv(datapath + 'data_0_50_avg_ordered.csv', encoding='utf-8-sig', index_col=0)
 
 #Labels
-reach_id = ['signalwort', 'warnhinweise']
+#029/015_sd nur achtung
+reach_id = ['signalwort', 'warnhinweise', 'gefahrenhinweise']
 
 #Preprocessing
 data ['word'] = data ['word'].astype(str)
