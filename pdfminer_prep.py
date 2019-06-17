@@ -205,7 +205,7 @@ def parse_words(lt_objs):
 
                 objectnum = objectnum + 1
 
-for d, entry in enumerate(entries[:50]):
+for d, entry in enumerate(entries[:2]):
 	print(i)
 
 	doc = entry
@@ -280,4 +280,8 @@ df = df.sort_values(['doc','Page','Ycord_first','Xcord_first'],ascending=[True,T
 #delete empty tokens
 df = df[ df["word"] != ""]
 
-df.to_csv('data_0_50_ordered.csv', index=False, encoding='utf-8-sig')
+#identify special characters
+df['special_char'] = np.where(df['word'] == '/', 1, 0)
+
+
+df.to_csv('data_0_2_ordered.csv', index=False, encoding='utf-8-sig')
