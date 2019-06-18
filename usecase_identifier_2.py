@@ -27,30 +27,40 @@ data = pd.read_csv(datapath + 'data_0_50_avg_ordered.csv', encoding='utf-8-sig',
 #Labels
 usecase_start = ['abgeraten wird']
 usecase_stop = ['einzelheiten zum', 'angaben des lieferanten']
-trigger_start = ['empfohlene ( r ) verwendungszweck ( e )', 
+trigger_start = [
+                'empfohlene r verwendungszweck e ', 
                 'identifizierte Verwendungen des stoffs oder gemischs',
-                'identifizierte verwendungen:', 
                 'identifizierte verwendungen', 
-                'verwendung des stoffes / des gemisches', 
-                'verwendung des stoffs/des gemischs',
-                'funktions- oder verwendungskategorie',
-                'verwendungen, von denen abgeraten wird',
-                'abgeratene verwendungen']
-trigger_end = ['empfohlene ( r ) verwendungszweck ( e )', 
-                'identifizierte Verwendungen des stoffs oder gemischs',
-                'identifizierte verwendungen:', 
                 'identifizierte verwendungen', 
-                'verwendung des stoffes / des gemisches', 
-                'verwendung des stoffs/des gemischs',
+                'verwendung des stoffes des gemisches', 
+                'verwendung des stoffs des gemischs',
                 'funktions- oder verwendungskategorie',
                 'verwendungen von denen abgeraten wird',
+                'vorgesehene Verwendung',
+                'abgeratene verwendungen'
+                ]
+
+trigger_end = [
+                'empfohlene r verwendungszweck e ', 
+                'identifizierte Verwendungen des stoffs oder gemischs',
+                'identifizierte verwendungen', 
+                'identifizierte verwendungen', 
+                'verwendung des stoffes des gemisches', 
+                'verwendung des stoffs des gemischs',
+                'funktions- oder verwendungskategorie',
+                'verwendungen von denen abgeraten wird',
+                'vorgesehene Verwendung',
                 'abgeratene verwendungen',
-                'kontaktieren sie ihren lieferanten für weitere informationen über verwendungen',
+
+
+                'kontaktieren sie ihren lieferanten für weitere informationen',
                 'zur Zeit liegen keine Informationen hierzu vor', 
                 'keine weiteren relevanten informationen verfügbar',
                 '1.3 einzelheiten zum',
+                '1.3 einzelheiten zum',
                 'einzelheiten zum', 
-                'angaben des lieferanten']
+                'angaben des lieferanten'
+                ]
 #ignore_list = ['zur Zeit liegen keine Informationen hierzu vor', 'keine weiteren relevanten informationen verfügbar']
 
 
@@ -67,18 +77,20 @@ data['usecase_sep'] = np.nan
 #Adde new column for unadvised usecase
 #data['usecase_con'] = np.nan
 
-index = 1
-length = len(data.index)-1
+
+
 
 data_iter = pd.DataFrame(data.loc[data['special_char'] <1])
 #Update work index + save old index
 data_iter.reset_index(inplace=True)
 
+index = 1
+length = len(data_iter['index'])-1
 
 while index < length:
-    row = data.loc[index, :]
+    row = data_iter.loc[index, :]
     print (index, row.word)
-    start_str = data.loc[index-1, 'word'] + ' ' + row.word
+    start_str = data_iter.loc[index-1, 'word'] + ' ' + row.word
 
     #search for starting point
     for start in usecase_start:
@@ -91,14 +103,15 @@ while index < length:
             while True:
                 i += 1
                 recording = True
-                stop_str = data.loc[i+1,'word'] + ' ' + data.loc[i+2,'word']
+                stop_str = data_iter.loc[i+1,'word'] + ' ' + data_iter.loc[i+2,'word']
                 for stop in usecase_stop:
                     if stop in stop_str:
                         recording=False
                 if recording == False:
                     break
-                usecase_str = usecase_str + ' ' + data.loc[i, 'word']
-            data.loc[i-1, 'usecase_part'] = usecase_str
+                usecase_str = usecase_str + ' ' + data_iter.loc[i, 'word']
+            temp1 = int(data_iter.loc[i, 'index'])
+            data.loc[temp1-1, 'usecase_part'] = usecase_str
             
             #start parsing from this position
             detect_start = ''
@@ -107,7 +120,7 @@ while index < length:
             j = index+1
             while j < i:
                 keepsearching = True
-                detect_start = detect_start + ' ' + data.loc[j, 'word']
+                detect_start = detect_start + ' ' + data_iter.loc[j, 'word']
 
                 for trig_st in trigger_start:
                     if detect_start.find(trig_st) != -1:
@@ -115,12 +128,14 @@ while index < length:
                         k = j
                         while keepsearching:
                             k +=1
-                            detect_end = detect_end + ' ' + data.loc[k, 'word']
+                            detect_end = detect_end + ' ' + data_iter.loc[k, 'word']
 
                             for trig_en in trigger_end:
                                 if detect_end.find(trig_en) != -1:
                                     end_index = k-len(trig_en.split())
-                                    data.loc[j+1:end_index, 'usecase_sep'] = 1
+                                    temp2 = int(data_iter.loc[j, 'index'])
+                                    temp3 = int(data_iter.loc[end_index, 'index'])
+                                    data.loc[temp2+1:temp3, 'usecase_sep'] = 1
                                     j = end_index
                                     keepsearching = False
                                     break
