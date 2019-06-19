@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 import os 
 import re
-from operator import itemgetter
 
 #set directory path of current script
 ospath =  os.path.dirname(__file__) 
@@ -14,32 +13,17 @@ datadir = 'data/1_working/'
 datapath = os.path.join(ospath, datadir)
 
 #read raw data csv
-data = pd.read_csv(datapath + 'reduced_columns.csv', encoding='utf-8-sig', index_col=0)
+data = pd.read_csv(datapath + 'data_all_avg_ordered.csv', encoding='utf-8-sig', index_col=0)
 
 #Labels
-legal_forms = ['gmbh', 'ug', 'ag', 'gbr', 'e.k.', 'ohg', 'ohg', 'kg', 'se', 'lp', 'llp', 'llp', 'lllp', 'llc', 'lc', 'ltd. co', 'pllc', 'corp.', 'inc.', 'corp', 'inc', 'kluthe']
-#Chemische Werke Kluthe, vergiftungsinformationszentrale der gesundheit österreich gmbh,
-#['GmbH', 'UG', 'AG', 'GbR', 'e.K.', 'OHG', 'ohg', 'KG', 'SE', 'LP', 'LLP', 'LLP', 'LLLP', 'LLC', 'LC', 'Ltd. Co', 'PLLC', 'Corp.', 'Inc.']
-stop_list = ['firmenname:', 'lieferanschrift', 'lieferant']
-exclusion_list = ['vergiftungsinformationszentrale']
+legal_forms = ['gmbh', 'ug', 'ag', 'gbr', 'e.k.', 'ohg', 'ohg', 'kg', 'se', 'lp', 'llp', 'llp', 'lllp', 'llc', 'lc', 'ltd. co', 'pllc', 'corp.', 'inc.', 'corp', 'inc', 'kluthe', 's.l.', 'bvba']
+stop_list = ['firmenname', 'firmenbezeichnung','lieferanschrift', 'lieferant', 'der', ':', ')', 'zum', 'hersteller', 'inverkehrsbringer', '*', 'firma']
+exclusion_list = ['vergiftungsinformationszentrale', 'tüv', 'website', 'gbk', '@', 'www']
 
 
 #Preprocessing
 data ['word'] = data ['word'].astype(str)
 data ['word'] = data['word'].str.lower()
-
-
-
-#Delete non-alpha numeric values at begining and end of words
-#data ['word'] = data['word'].replace(r"^\W+|\W+$", "", regex=True)
-
-#Delete empty cells
-#data ['word'] = data['word'].replace('', np.nan)
-#data.dropna(subset=['word'],inplace=True)
-
-#Update work index + save old index
-#data.reset_index(inplace=True)
-
 
 
 #Add new column for company name
@@ -76,7 +60,7 @@ for row in data.loc[data['Page'] <= 2, ['word']].itertuples(index=True):
                         break
                 #check exclusion list
                 for el in exclusion_list: 
-                    if el in data.loc[row.Index-i,'word']:
+                    if (data.loc[row.Index-i,'word'].find(el) != -1) or (company_str.find(el) != -1):
                         excluded_str = True
                         #break from inner el loop
                         break
@@ -98,74 +82,3 @@ for row in data.loc[data['Page'] <= 2, ['word']].itertuples(index=True):
         break
     
 data.to_csv(datapath + 'company_identified.csv', encoding='utf-8-sig')
-
-
-#Just as backup, not necessary anymore
-#------->List approach<------# 
-'''
-import pandas as pd
-from nltk import FreqDist
-from nltk.corpus import stopwords
-import numpy as np
-import os 
-import re
-from operator import itemgetter
-
-#set directory path of current script
-ospath =  os.path.dirname(__file__) 
-
-#specify relative path to data files
-datadir = 'data/1_working/'
-
-#full path to data files
-datapath = os.path.join(ospath, datadir)
-
-#read raw data csv
-data = pd.read_csv(datapath + 'reduced_columns.csv', encoding='utf-8-sig', index_col=0)
-
-#Labels
-legal_forms = ['gmbh', 'ug', 'ag', 'gbr', 'e.k.', 'ohg', 'ohg', 'kg', 'se', 'lp', 'llp', 'llp', 'lllp', 'llc', 'lc', 'ltd. co', 'pllc', 'corp.', 'inc.', 'corp', 'inc']
-#['GmbH', 'UG', 'AG', 'GbR', 'e.K.', 'OHG', 'ohg', 'KG', 'SE', 'LP', 'LLP', 'LLP', 'LLLP', 'LLC', 'LC', 'Ltd. Co', 'PLLC', 'Corp.', 'Inc.']
-
-#Preprocessing
-data ['word'] = data ['word'].astype(str)
-data ['word'] = data['word'].str.lower()
-
-#Delete non-alpha numeric values at begining and end of words
-#data ['word'] = data['word'].replace(r"^\W+|\W+$", "", regex=True)
-#Delete empty cells
-#data ['word'] = data['word'].replace('', np.nan)
-#data.dropna(subset=['word'],inplace=True)
-
-#Update work index + save old index
-data.reset_index(inplace=True)
-
-#Add new columns for feature generation
-data['company_name'] = np.nan
-
-# List for data aggregation
-indexlabel_list = []
-
-#get list of all words
-words = list(data['word'])
-
-for index, word in enumerate(words):
-    print (index, word)
-    for lf in legal_forms:
-        if lf in word:
-            company_str = word
-            i = 0
-            while True:
-                i += 1
-                if data.loc[index-i, 'ycord_average'] != data.loc[index, 'ycord_average']:
-                    break
-                company_str += ' ' + words[index-i]
-            company_str_r = ' '.join(company_str.split(" ")[-1::-1])
-            for s in range(i,index+1):
-                data.loc[s, 'company_name'] = company_str_r
-        break
-    
-data.to_csv(datapath + 'company_identified.csv', encoding='utf-8-sig')
-
-#Label zu zugehörigen wörtern hinzufügen
-#begrenzung festlegen'''
