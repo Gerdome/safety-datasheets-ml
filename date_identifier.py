@@ -37,9 +37,6 @@ date_labels = {
 data ['word'] = data['word'].str.lower()
 #Delete non-alpha numeric values at begining and end of words
 data ['word'] = data['word'].replace(r"^\W+|\W+$", "", regex=True)
-#Delete empty cells
-data ['word'] = data['word'].replace('', np.nan)
-data.dropna(subset=['word'],inplace=True)
 
 #Update work index + save old index
 data.reset_index(inplace=True)
@@ -117,4 +114,4 @@ for i in indexlabel_list:
 #Delete after test
 #final_data.drop(['Ycord_first','Object','Textbox'], axis=1)
 
-final_data.to_csv(os.path.join(ospath, 'data/1_working/dates_identified_0_50.csv'), encoding='utf-8-sig')
+final_data.to_csv(datapath + 'dates_identified_0_50.csv', encoding='utf-8-sig')
