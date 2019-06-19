@@ -17,7 +17,7 @@ datadir = 'data/1_working/'
 datapath = os.path.join(ospath, datadir)
 
 #read raw data csv
-data = pd.read_csv(datapath + 'reduced_columns.csv', encoding='utf-8-sig', index_col=0)
+data = pd.read_csv(datapath + 'data_0_50_ordered_ap.csv', encoding='utf-8-sig', index_col=0)
 
 #Labels
 date_labels = {
@@ -35,23 +35,21 @@ date_labels = {
 #Preprocessing
 #Convert all to lower case
 data ['word'] = data['word'].str.lower()
-#Delete non-alpha numeric values at begining and end of words
-data ['word'] = data['word'].replace(r"^\W+|\W+$", "", regex=True)
-
-#Update work index + save old index
-data.reset_index(inplace=True)
 
 #Add new columns for feature generation
 data['date_nr'] = np.nan
 data['date_string'] = np.nan
 data['date_cat'] = np.nan
 
-# List for data aggregation
-indexlabel_list = []
+#Filter out special characters for simpler trigger detection
+data_iter = pd.DataFrame(data.loc[(data['Page'] == 1) & (data['special_char'] <1)])
+#Update work index + save old index
+data_iter.reset_index(inplace=True)
+
 
 #Iterrate through dataframe
-for row in data.loc[data['Page'] == 1, ['word']].itertuples(index=True):
-    print (row)
+for row in data_iter.itertuples(index=True):
+    print (row.doc, row.Index)
     for fmt in (#all short/long  combinations with dot format
                 '%d.%m.%Y', '%d.%m.%y', '%w.%m.%Y', '%w.%m.%y', '%d.%-m.%Y', '%d.%-m.%y','%w.%-m.%Y','%w.%-m.%y', 
                 '%Y.%m.%d', '%y.%m.%d', '%Y.%m.%w', '%y.%m.%w', '%Y.%-m.%d', '%y.%-m.%d','%Y.%-m.%w','%y.%-m.%w',
@@ -72,12 +70,13 @@ for row in data.loc[data['Page'] == 1, ['word']].itertuples(index=True):
 
             #Prevent picking wrong dates
             if date < date.today():
-                data.loc[row.Index, 'date_nr'] = date
+                org_index = int(data_iter.loc[row.Index, 'index'])
+                data.loc[org_index, 'date_nr'] = date
                 #Catch 5 words before date
                 date_str = ''
                 for i in range(5,0,-1): 
-                    date_str += str(data.loc[row.Index-i, 'word']) + ' '
-                data.loc[row.Index, 'date_string'] = date_str
+                    date_str += str(data_iter.loc[row.Index-i, 'word']) + ' '
+                data.loc[org_index, 'date_string'] = date_str
 
                 #search in string for label key words
                 temp = []
@@ -90,28 +89,10 @@ for row in data.loc[data['Page'] == 1, ['word']].itertuples(index=True):
                 else:
                     date_label = 'Nicht zuordbar'
                 # create label in working csv
-                data.loc[row.Index, 'date_cat'] = date_label
-                # save label in list for final data
-                indexlabel_list.append((int(data.loc[row.Index, 'index']), date_label))
+                data.loc[org_index, 'date_cat'] = date_label
             break
 
         except (ValueError, TypeError) as e:
             continue
 
-#Create separate file with working data and detected labels
-#data.to_csv(os.path.join(ospath, 'data/labeled/dates_identified_0_50_.csv'), encoding='utf-8-sig')
-
-
-# match labels with final data: fill in identified labels in data
-final_data = pd.read_csv(datapath + 'reduced_columns.csv', encoding='utf-8-sig', index_col=0)
-
-# Create label column
-data['dates'] = np.nan
-
-for i in indexlabel_list:
-        final_data.loc[i[0],'dates'] = i[1]
-
-#Delete after test
-#final_data.drop(['Ycord_first','Object','Textbox'], axis=1)
-
-final_data.to_csv(datapath + 'dates_identified_0_50.csv', encoding='utf-8-sig')
+data.to_csv(datapath + 'dates_identified_0_50.csv', encoding='utf-8-sig')
