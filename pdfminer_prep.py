@@ -281,7 +281,6 @@ df = df.sort_values(['doc','Page','Ycord_first','Xcord_first'],ascending=[True,T
 df = df[ df["word"] != ""]
 
 #identify special characters
-#df['special_char'] = df['word'].apply(lambda x: 1 if x in (')',':','%',';','(','/','.',',') else 0 )
-df['special_char'] = df['word'].apply(lambda x: 0 if x.isalnum() else 1)
+df['special_char'] = df['word'].apply(lambda x: 1 if x in ('.',',','(', ')', '–', '[', '·','{', '}', ']', ':', ';', "'", '"','?', '/', '*','!', '@', '#', '&', '"*"', '`', '~', '$', '^', '+', '=', '<', '>') else 0 )
 
 df.to_csv('data_all_ordered.csv', index=False, encoding='utf-8-sig')
