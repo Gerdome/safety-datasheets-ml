@@ -59,13 +59,14 @@ data = data[data['chapter 3.2'] == 1]
 
 #reset index
 data = data.reset_index(drop = True)
+
 '''
-reorder table data
+identify tables more precise
 '''
 # delete information on top of table: indicator for start of table is multiple textboxes within same line of text
 
 # iterate through y_cords (lines)
-for row in data.loc[:9000, ['Object','ycord_average','table']].itertuples(index=True):
+for row in data.loc[:118000, ['Object','ycord_average','table']].itertuples(index=True):
     
     #skip rows that are already labeled --> if already 0 or 1
     if data.loc[row.Index, 'table'] == 0 or data.loc[row.Index, 'table'] == 1:
@@ -90,8 +91,30 @@ for row in data.loc[:9000, ['Object','ycord_average','table']].itertuples(index=
 # some lines within a table (e.g. some cells over multiple lines) have the same textbox 
 # check if same textbox is somewhere assigned to table --> also assign word to table 
 
+also_table  = []
+
+# function to check
+def level_of_detail(x):
+    if x.doc == row.doc and x.Page == row.Page and x.Object == row.Object:
+        also_table.append(x['Full Index'])
+
+
+# iterate through words again
+for row in data.loc[:, ['Object','word','doc','Page','table']].itertuples(index=True):
+    # only interested in words assigned to table 
+    if row.table == 0:
+        continue
+    #data['also_table'] = data[['Object','word','doc','Page']].apply(lambda x: 0 if x.word == 'hat' else 1 , axis = 1)
+    data[['Object','word','doc','Page','Full Index']].apply(level_of_detail, axis = 1)
+
+
+also_table = list(set(also_table))
+
+data.loc[data['Full Index'].isin(also_table), 'table'] = 1
+
+
 
 # textboxes detected by pdfminer helpful --> order not by x/y coordinate --> order by textboxes
 
-data.to_csv('table_identified_test.csv', encoding='utf-8-sig')
+data.to_csv('table_identified.csv', encoding='utf-8-sig')
 
