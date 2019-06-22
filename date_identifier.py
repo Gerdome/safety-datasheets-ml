@@ -17,7 +17,7 @@ datadir = 'data/1_working/'
 datapath = os.path.join(ospath, datadir)
 
 #read raw data csv
-data = pd.read_csv(datapath + 'reduced_columns.csv', encoding='utf-8-sig', index_col=0)
+data = pd.read_csv(datapath + 'data_all_avg_ordered.csv', encoding='utf-8-sig', index_col=0)
 
 #Labels
 date_labels = {
@@ -51,7 +51,6 @@ indexlabel_list = []
 
 #Iterrate through dataframe
 for row in data.loc[data['Page'] == 1, ['word']].itertuples(index=True):
-    print (row)
     for fmt in (#all short/long  combinations with dot format
                 '%d.%m.%Y', '%d.%m.%y', '%w.%m.%Y', '%w.%m.%y', '%d.%-m.%Y', '%d.%-m.%y','%w.%-m.%Y','%w.%-m.%y', 
                 '%Y.%m.%d', '%y.%m.%d', '%Y.%m.%w', '%y.%m.%w', '%Y.%-m.%d', '%y.%-m.%d','%Y.%-m.%w','%y.%-m.%w',
@@ -103,7 +102,8 @@ for row in data.loc[data['Page'] == 1, ['word']].itertuples(index=True):
 
 
 # match labels with final data: fill in identified labels in data
-final_data = pd.read_csv(datapath + 'reduced_columns.csv', encoding='utf-8-sig', index_col=0)
+final_data = pd.read_csv(datapath + 'data_all_avg_ordered.csv', encoding='utf-8-sig', index_col=0)
+
 
 # Create label column
 data['dates'] = np.nan
@@ -114,4 +114,4 @@ for i in indexlabel_list:
 #Delete after test
 #final_data.drop(['Ycord_first','Object','Textbox'], axis=1)
 
-final_data.to_csv(datapath + 'dates_identified_0_50.csv', encoding='utf-8-sig')
+final_data.to_csv('dates_identified.csv', encoding='utf-8-sig')

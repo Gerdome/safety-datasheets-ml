@@ -33,7 +33,6 @@ data['company'] = np.nan
 
 #Loop through all rows in data
 for row in data.loc[data['Page'] <= 2, ['word']].itertuples(index=True):
-    print (row)
     #search for legal form
     for lf in legal_forms:
         if lf in row.word:
@@ -81,4 +80,4 @@ for row in data.loc[data['Page'] <= 2, ['word']].itertuples(index=True):
         #break from outer lf loop        
         break
     
-data.to_csv(datapath + 'company_identified.csv', encoding='utf-8-sig')
+data.to_csv('company_identified.csv', encoding='utf-8-sig')

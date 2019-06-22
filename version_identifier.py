@@ -3,6 +3,7 @@ from nltk import FreqDist
 from nltk.corpus import stopwords
 import os
 import re
+import numpy as np
 
 #set directory path of current script
 ospath =  os.path.dirname(__file__) 
@@ -14,7 +15,7 @@ datadir = 'data/1_working/'
 datapath = os.path.join(ospath, datadir)
 
 #read raw data csv
-data = pd.read_csv(datapath + 'data_0_50_avg_ordered.csv', dtype=str , index_col = 0)
+data = pd.read_csv(datapath + 'data_all_avg_ordered.csv', encoding='utf-8-sig', index_col=0)
 
 #get list of all words
 words = list(data['word'])
@@ -45,8 +46,8 @@ for c in version_dict:
 
 
 # fill in identified labels in data
-data['version label'] = '0'
+data['version'] = np.nan
 for j in l1:
-    data.loc[j,'version label'] = 'version'
+    data.loc[j,'version'] = 'version'
 
 data.to_csv('version_identified.csv', encoding='utf-8-sig')

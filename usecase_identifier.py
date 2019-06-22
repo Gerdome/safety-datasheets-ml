@@ -22,7 +22,7 @@ datadir = 'data/1_working/'
 datapath = os.path.join(ospath, datadir)
 
 #read raw data csv
-data = pd.read_csv(datapath + 'data_0_50_avg_ordered.csv', encoding='utf-8-sig', index_col=0)
+data = pd.read_csv(datapath + 'data_all_avg_ordered.csv', encoding='utf-8-sig', index_col=0)
 
 #Labels
 # Detects start and end of the whole usecase part
@@ -104,7 +104,6 @@ length = len(data_iter['index'])-1
 while index < length:
     row = data_iter.loc[index, :]
     docu = row.doc
-    print (index, row.word)
 
     # Sliding window of start point
     start_str = data_iter.loc[index-1, 'word'] + ' ' + row.word
@@ -175,4 +174,4 @@ while index < length:
         break
     index +=1
 
-data.to_csv(datapath + 'usecase_identified.csv', encoding='utf-8-sig')
+data.to_csv('usecase_identified.csv', encoding='utf-8-sig')
