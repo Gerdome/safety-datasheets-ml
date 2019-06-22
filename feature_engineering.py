@@ -19,6 +19,8 @@ datapath = os.path.join(ospath, datadir)
 #read raw data csv
 data = pd.read_csv(datapath + 'labeled_data.csv', dtype=str, encoding='utf-8-sig', index_col=0)
 
+labels = ['chapter','subchapter','chem','company','dates','directive','signal','usecase','version']
+
 '''
 def word2features(sent, i):
     print(i)
@@ -120,6 +122,7 @@ print(data.shape)
 
 final_data = pd.concat([data, features], axis=1, sort=False)
     
+final_data = final_data.drop(labels,1)
 
 final_data.to_csv('final.csv', encoding='utf-8-sig')
 

@@ -50,13 +50,14 @@ data = data.astype('category')
 #save features categories in dictioniary
 word_code_dict = dict(enumerate(data['word'].cat.categories))
 #save features categories in dictioniary
-label_code_dict = dict(enumerate(data['label'].cat.categories))
+#label_code_dict = dict(enumerate(data['label'].cat.categories))
 
+'''
 with open('label_dict.csv', 'w') as csv_file:
     writer = csv.writer(csv_file)
     for key, value in label_code_dict.items():
        writer.writerow([key, value])
-'''
+
 with open('word_dict.csv', 'w') as csv_file:
     writer = csv.writer(csv_file)
     for key, value in word_code_dict.items():
@@ -79,7 +80,11 @@ data['word[-3]'] = data['word[-3]'].cat.codes
 
 #categorize labels
 data['label'] = data['label'].cat.codes
-
+#data['label'] = data['label'].cat.add_categories(0)
+#data['label'] = data['label'].fillna(0)
+#data['label'] = data['label'].astype(int)
+#print(type(data.loc[100,'label']))
+ 
 
 # Separating out the features
 X = data.loc[:, features]
@@ -88,10 +93,13 @@ y = data.loc[:,['label']]
 
 # create multiple labels for different categories
 # version is 72
-y = y['label'].apply(lambda x: 1 if x == 72 else 0)
+#y = y['label'].apply(lambda x: 1 if x == 72 else 0)
 
 #train test split
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+
+X_train.to_csv('train.csv')
+X_test.to_csv('test.csv')
 
 '''
 crf = CRF(algorithm='lbfgs',
@@ -110,6 +118,9 @@ classifier.fit(X_train, y_train)
 
 
 y_pred = classifier.predict(X_test)
+
+pd.DataFrame(y_pred).to_csv("pred.csv")
+pd.DataFrame(y_test).to_csv("y_test.csv")
 
 print(y_pred)
 

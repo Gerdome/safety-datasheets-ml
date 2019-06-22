@@ -41,6 +41,9 @@ from nltk.tokenize import word_tokenize
  6) Finally process the file page by page 
 '''
 
+'''
+pdf nr: 42, 72, 124, 145,259, 298, 368 not in data !
+'''
 
 #set directory path of current script
 ospath =  os.path.dirname(__file__) 
