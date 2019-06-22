@@ -30,9 +30,8 @@ chapters_start_words = [':', 'Bezeichnung','Mögliche','Zusammensetzung','Erste-
 stop_list = ['1.1', '2.1', '3.1','4.1','5.1','6.1', '7.1', '8.1']
 
 #Loop through all rows in data
-for row in data.loc[:300000, ['word']].itertuples(index=True):
+for row in data.loc[:, ['word']].itertuples(index=True):
     if (row.word == 'ABSCHNITT' and ('Bold' in data.loc[row.Index,'font_name'] or int(data.loc[row.Index,'font_size']) > 10)) or (row.word in chapters and 'Bold' in data.loc[row.Index,'font_name'] and data.loc[row.Index+1,'word'] in chapters_start_words):
-            print (row)
             #first token of chapter header
             i = 0
 
