@@ -17,7 +17,7 @@ datadir = 'data/1_working/'
 datapath = os.path.join(ospath, datadir)
 
 #read raw data csv
-data = pd.read_csv(datapath + 'data_0_50_ordered_ap.csv', encoding='utf-8-sig', index_col=0)
+data = pd.read_csv(datapath + 'data_all_avg_ordered.csv', encoding='utf-8-sig', index_col=0)
 
 #Labels
 date_labels = {
