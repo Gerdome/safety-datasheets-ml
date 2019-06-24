@@ -11,7 +11,7 @@ from operator import itemgetter
 ospath =  os.path.dirname(__file__) 
 
 #specify relative path to data files
-datadir = 'data/1_working/'
+datadir = 'data/2_final/'
 
 #full path to data files
 datapath = os.path.join(ospath, datadir)
@@ -42,7 +42,8 @@ data['date_string'] = np.nan
 data['date_cat'] = np.nan
 
 #Filter out special characters for simpler trigger detection
-data_iter = pd.DataFrame(data.loc[(data['Page'] == 1) & (data['special_char'] <1)])
+#
+data_iter = pd.DataFrame(data.loc[(data['special_char'] <1) & (data['Page'] == 1)])
 #Update work index + save old index
 data_iter.reset_index(inplace=True)
 
@@ -95,5 +96,5 @@ for row in data_iter.itertuples(index=True):
         except (ValueError, TypeError) as e:
             continue
 
-data.to_csv(datapath + 'dates_identified_0_50.csv', encoding='utf-8-sig')
+data.to_csv(datapath + 'dates_identified_ap.csv', encoding='utf-8-sig')
 
