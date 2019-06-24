@@ -11,28 +11,31 @@ from operator import itemgetter
 ospath =  os.path.dirname(__file__) 
 
 #specify relative path to data files
-datadir = 'data/2_final/'
+datadir = 'data/1_working/'
 
 #full path to data files
 datapath = os.path.join(ospath, datadir)
 
 #read raw data csv
-data = pd.read_csv(datapath + 'data_all_avg_ordered.csv', encoding='utf-8-sig', index_col=0)
+data = pd.read_csv(datapath + 'data_0_50_avg_ordered.csv', encoding='utf-8-sig', index_col=0)
 
 #Labels
 date_labels = {
     #1. Druckdatum/Erstellung
-    'Druck':  ['druck', 'ausgabe', 'ausstellung'],
+    'Druck':  ['druck', 'ausgabe', 'ausstellung', 'erstellung', 'sd-datum', 'erstellt', 'ausgestellt'],
     #2. Überarbeitungsdatum
-    'Überarbeitung':  ['überarbeit', 'änderung', 'revision', 'bearbeitung'],
+    'Überarbeitung':  ['überarbeit', 'änderung', 'revision', 'bearbeitung', 'quick-fds'],
     #3. Datum alte Version
-    'Vorgänger':  ['ersetzt', 'ersatz', 'fassung'],
+    'Vorgänger':  ['ersetzt', 'ersatz', 'fassung'],#Datum der letzten Ausgabe, infodyne
     #4. Gültigkeitsdatum
-    'Gültig':  ['kraft'],
-    #5. Nicht zuordbar
+    'Gültig':  ['kraft', 'freigabe'],
+    #5. Negative Exceptions
+    'Exclude': ['sblcore', 'artikel']
+    #6. All other not explicit listed cases are also printdate
 }
 
 #Preprocessing
+data ['word'] = data ['word'].astype(str)
 #Convert all to lower case
 data ['word'] = data['word'].str.lower()
 
@@ -40,6 +43,7 @@ data ['word'] = data['word'].str.lower()
 data['date_nr'] = np.nan
 data['date_string'] = np.nan
 data['date_cat'] = np.nan
+data['date_stopword'] = np.nan
 
 #Filter out special characters for simpler trigger detection
 #
@@ -51,6 +55,9 @@ data_iter.reset_index(inplace=True)
 #Iterrate through dataframe
 for row in data_iter.itertuples(index=True):
     print (row.doc, row.Index)
+    # Catch exception with subchapter numbers
+    if row.word.endswith('.0'):
+        continue
     for fmt in (#all short/long  combinations with dot format
                 '%d.%m.%Y', '%d.%m.%y', '%w.%m.%Y', '%w.%m.%y', '%d.%-m.%Y', '%d.%-m.%y','%w.%-m.%Y','%w.%-m.%y', 
                 '%Y.%m.%d', '%y.%m.%d', '%Y.%m.%w', '%y.%m.%w', '%Y.%-m.%d', '%y.%-m.%d','%Y.%-m.%w','%y.%-m.%w',
@@ -76,7 +83,7 @@ for row in data_iter.itertuples(index=True):
                 #Catch 5 words before date
                 date_str = ''
                 for i in range(5,0,-1): 
-                    date_str += str(data_iter.loc[row.Index-i, 'word']) + ' '
+                    date_str += data_iter.loc[row.Index-i, 'word'] + ' '
                 data.loc[org_index, 'date_string'] = date_str
 
                 #search in string for label key words
@@ -87,8 +94,9 @@ for row in data_iter.itertuples(index=True):
                 #if substring was found value is >= 0
                 if max(temp, key=itemgetter(1))[1] >= 0:
                     date_label = max(temp, key=itemgetter(1))[0]
+
                 else:
-                    date_label = 'Nicht zuordbar'
+                    date_label = 'Druck_implizit'
                 # create label in working csv
                 data.loc[org_index, 'date_cat'] = date_label
             break
