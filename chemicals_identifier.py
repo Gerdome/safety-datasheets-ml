@@ -82,7 +82,7 @@ for row in data.loc[:, ['word']].itertuples(index=True):
        # i = 1
 
  ##           while True:
-#                i += 1
+  #                i += 1
    #             if data.loc[row.Index, 'word'] = 
 
 
