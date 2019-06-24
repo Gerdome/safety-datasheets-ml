@@ -6,6 +6,10 @@ from nltk.corpus import stopwords
 import os 
 import re
 from operator import itemgetter
+import datetime
+from dateutil.parser import parse
+
+
 
 #set directory path of current script
 ospath =  os.path.dirname(__file__) 
@@ -76,18 +80,44 @@ def sent2tokens(sent):
     
 '''
 
+def is_date(string, fuzzy=False):
+    """
+    Return whether the string can be interpreted as a date.
+
+    :param string: str, string to check for date
+    :param fuzzy: bool, ignore unknown tokens in string if True
+    """
+    try: 
+        parse(str(string), fuzzy=fuzzy)
+        return True
+
+    except ValueError:
+        return False
+    
+    except OverflowError:
+        return False
+
 words = list(data['word'])
+
+# define own special character set 
+#regex = re.compile('[@_!#$%^&*()<>?/\|}{~:]./') 
+special_chars = ('.',',','(', ')', '–', '[', '·','{', '}', ']', ':', ';', "'", '"','?', '/', '*','!', '@', '#', '&', '"*"', '`', '~', '$', '^', '+', '=', '<', '>','%')
 
 features = {
     'word.lower': [],
     'word.isupper': [],
     'word.istitle': [],
     'word.isdigit': [],
+    'word.isdate': [],
+    'word.length': [],
+    'word.isspecial.char' :[],
+    'word.contains.special.char' :[],
 
     'word[-1]': [],
     '-1:word.lower': [],
     '-1:word.istitle': [],
     '-1:word.isupper': [],
+    '-1:word.isspecial.char' :[],
 
     'word[-2]': [],
     'word[-3]': []
@@ -98,6 +128,22 @@ for i, w in enumerate(words):
     features['word.isupper'].append(str(w).isupper())
     features['word.istitle'].append(str(w).istitle())
     features['word.isdigit'].append(str(w).isdigit())
+
+    if is_date(str(w)):
+        features['word.isdate'].append(True)
+    else:
+        features['word.isdate'].append(False)
+
+    features['word.length'].append(len(str(w)))
+    if str(w) in special_chars:
+        features['word.isspecial.char'].append(True)
+    else:
+        features['word.isspecial.char'].append(False)
+    if any(x in str(w) for x in special_chars):
+         features['word.contains.special.char'].append(True)
+    else:
+        features['word.contains.special.char'].append(False)
+
     if i > 3:
         features['word[-1]'].append(str(words[i-1]))
         features['word[-2]'].append(str(words[i-2]))
@@ -105,6 +151,12 @@ for i, w in enumerate(words):
         features['-1:word.lower'].append(str(words[i-1]).lower())
         features['-1:word.istitle'].append(str(words[i-1]).istitle())
         features['-1:word.isupper'].append(str(words[i-1]).isupper())
+
+        if str(words[i-1]) in ('.',',','(', ')', '–', '[', '·','{', '}', ']', ':', ';', "'", '"','?', '/', '*','!', '@', '#', '&', '"*"', '`', '~', '$', '^', '+', '=', '<', '>','%'):
+            features['-1:word.isspecial.char'].append(True)
+        else:
+            features['-1:word.isspecial.char'].append(False)
+
     else:
         features['word[-1]'].append(np.nan)
         features['word[-2]'].append(np.nan)
@@ -112,6 +164,7 @@ for i, w in enumerate(words):
         features['-1:word.lower'].append(np.nan)
         features['-1:word.istitle'].append(np.nan)
         features['-1:word.isupper'].append(np.nan)
+        features['-1:word.isspecial.char'].append(np.nan)
         
 features = pd.DataFrame(features)
 
