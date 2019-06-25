@@ -472,4 +472,8 @@ def version_identifier (data):
 #def chemicals_identifier (data):
 
 
+def main ():
+    
 
+if __name__ == '__main__':
+    main()
