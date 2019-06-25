@@ -105,6 +105,8 @@ while index < length:
     row = data_iter.loc[index, :]
     docu = row.doc
 
+    print (row.doc)
+
     # Sliding window of start point
     start_str = data_iter.loc[index-1, 'word'] + ' ' + row.word
 
@@ -174,4 +176,4 @@ while index < length:
         break
     index +=1
 
-data.to_csv('usecase_identified.csv', encoding='utf-8-sig')
+data.to_csv(datapath + 'usecase_identified.csv', encoding='utf-8-sig')
