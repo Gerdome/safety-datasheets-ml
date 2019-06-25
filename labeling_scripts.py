@@ -383,7 +383,7 @@ def directive_identifier (data):
 def signal_identifier (data):
     #Labels
     reach_id = ['signalwort']
-    reach_range = ['achtung', 'warnung', 'gefahr', 'entfällt']
+    reach_range = ['achtung', 'warnung', 'gefahr'] #,'entfällt'
 
 
     #Add new colum for reach status
@@ -438,7 +438,7 @@ def usecase_identifier (data):
                     ('verwendung des stoffs des gemischs',1),
                     ('identifizierte verwendungen', 1),
                     ('identifizierte anwendungen', 1),
-                    ('funktions- oder verwendungskategorie', 1),
+                    #('funktions- oder verwendungskategorie', 1),
                     ('relevante verwendungen', 1),
                     #('verwendungssektor', 1),
                     ('bestimmte verwendung der mischung',1),
@@ -468,14 +468,14 @@ def usecase_identifier (data):
                     'verwendungssektor',  '''
 
     trigger_end = [
-                    'verwendungssektor',
+                    #'verwendungssektor',
                     'nicht empfohlene verwendung der mischung',
                     'verwendungen von denen abgeraten wird',
                     'vorgesehene verwendung',
                     'abgeratene verwendungen',
                     'abgeratene anwendung',
 
-                    'produktkategorie', 
+                    #'produktkategorie', 
                     #'kontaktieren sie ihren lieferanten für weitere informationen',
                     #'es sind keine verwendungen bekannt',
                     #'zur zeit liegen keine Informationen hierzu vor',
@@ -484,19 +484,13 @@ def usecase_identifier (data):
                     #'keine weitere information vorhanden',
                     #'keine weiteren relevanten informationen verfügbar',
                     #'keine bekannt',
-                    'bestimmt für die allgemeinheit',
-                    'hauptverwendungskategorie',
+                    #'bestimmt für die allgemeinheit',
+                    #'hauptverwendungskategorie',
                     #'zur zeit',
                     '1.2.2',
                     '1.3',
-                    #'1.2.2. verwendungen',
-                    #'1.3. einzelheiten zum',
-                    #'1.3 einzelheiten zum',
                     'einzelheiten zum',
-                    #'1.3. angaben des lieferanten',
-                    #'1.3 angaben des lieferanten', 
                     'angaben des lieferanten',
-                    #'verwendungssektor'
                     ]
 
     #Add new column for part string
@@ -521,6 +515,8 @@ def usecase_identifier (data):
     while index < length:
         
         row = data_iter.loc[index, :]
+
+        yo = row.doc
 
         # Sliding window of start point
         start_str = data_iter.loc[index-1, 'word_low'] + ' ' + row.word_low
@@ -547,7 +543,7 @@ def usecase_identifier (data):
                 temp1 = int(data_iter.loc[i, 'index'])
                 temp4 = int(data_iter.loc[index, 'index'])
                 # add usecase string with the whole part to last index of part
-                data.loc[temp4+1:temp1-1, 'usecase_part'] = usecase_str
+                data.loc[temp4+1:temp1, 'usecase_part'] = usecase_str
                 
                 
                 #start searching for usecases from this position
@@ -580,7 +576,12 @@ def usecase_identifier (data):
                                         temp3 = int(data_iter.loc[end_index, 'index'])
                                         # check if part is pro or con usecase
                                         if trig_st[1] == 1:
-                                            data.loc[temp2:temp3, 'usecase_pro'] = 1
+                                            helpcheck = data_iter.loc[j, 'word_low'] + ' ' + data_iter.loc[j+1, 'word_low']
+                                            if helpcheck == 'des stoffs':
+                                                temp2 = int(data_iter.loc[j+4, 'index'])
+                                                data.loc[temp2:temp3, 'usecase_pro'] = 1
+                                            else:
+                                                data.loc[temp2:temp3, 'usecase_pro'] = 1
                                         else:
                                             data.loc[temp2:temp3, 'usecase_con'] = 1
                                         j = end_index
