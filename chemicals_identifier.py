@@ -70,11 +70,103 @@ for row in data.loc[:, ['word']].itertuples(index=True):
 #reset index
 #data = data.reset_index(drop = True)
 
+data = data[:90000]
+doc = ''
+
 # use regex to identify CAS numbers
-for row in data.loc[:, ['word']].itertuples(index=True):
+for row in data.loc[data['chapter 3.2'] == 1, ['word']].itertuples(index=True):
     #regex
-    if re.match(r"\d{4}-\d{2}-\d{1}$", str(row.word)) or re.match(r"\d{3}-\d{2}-\d{1}$", str(row.word)) or re.match(r"\d{5}-\d{2}-\d{1}$", str(row.word)):
-        data.loc[row.Index, 'chem'] = 'cas'
+    if re.match(r"\d{4}-\d{2}-\d{1}$", str(row.word)) or re.match(r"\d{3}-\d{2}-\d{1}$", str(row.word)) or re.match(r"\d{5}-\d{2}-\d{1}$", str(row.word)) or re.match(r"\d{6}-\d{2}-\d{1}$", str(row.word)):
+
+        # check if start of new doc
+        if data.loc[row.Index, 'doc'] != doc:
+            i = 1
+        doc = data.loc[row.Index, 'doc']
+
+        data.loc[row.Index, 'chem'] = 'cas_' + str(i)
+
+
+        #look for % in both directions
+        j = 0
+
+        #check for words in the same line
+        while True:
+            j += 1
+
+            if data.loc[row.Index-2,'word'] == '-':
+                data.loc[row.Index -1:row.Index -3 ,'chem_%'] = 'cas' + str(i)
+                break
+
+            if data.loc[row.Index+1,'word'] == '%':
+                data.loc[row.Index + 3, 'chem_%'] = 'cas' + str(i)
+                break
+
+            if data.loc[row.Index+j,'word'] == '<':
+                data.loc[row.Index +j:row.Index +j + 1, 'chem_%'] = 'cas' + str(i)
+                break
+
+            #look for % ratio around CAS number
+            if data.loc[row.Index-j,'word'] == '%':
+                data.loc[row.Index -j, 'chem_%'] = 'cas' + str(i)
+
+                #Look for all the digits assigned to the % symbol
+                t = 0
+                while True:
+                    t += 1
+                    # stop if '<'
+                    if data.loc[row.Index -j -t, 'word'] == '<':
+                        # if <, check if token before '-' --> also range --> take token before as well
+                        if data.loc[row.Index -j -t - 1, 'word'] == '-':
+                            print(row.Index)
+                            data.loc[row.Index - j - t - 2:row.Index-j, 'chem_%'] = 'cas' + str(i)
+                        else:
+                            data.loc[row.Index - j - t:row.Index-j, 'chem_%'] = 'cas' + str(i)
+                        break
+                    # i '-' found: range --> label until one token before '-'
+                    if data.loc[row.Index -j -t, 'word'] == '-':
+                        data.loc[row.Index - j - (t+1):row.Index-j, 'chem_%'] = 'cas' + str(i)
+                        break
+                    #stop is looking for more than 10 tokens
+                    if t == 10:
+                        data.loc[row.Index -j -1, 'chem_%'] = 'cas' + str(i)
+                        break
+                   
+
+                break
+
+            if data.loc[row.Index+j,'word'] == '%':
+                data.loc[row.Index +j, 'chem_%'] = 'cas' + str(i)
+
+                #Look for all the digits assigned to the % symbol
+                t = 1 
+                while True:
+                    # if '<' 
+                    if data.loc[row.Index +j -t, 'word'] == '<':
+                        # if <, check if token before '-' --> also range --> take token before as well
+                        if data.loc[row.Index +j -t - 1, 'word'] == '-':
+                            print(row.Index)
+                            data.loc[row.Index + j - t - 2:row.Index+j, 'chem_%'] = 'cas' + str(i)
+                        else:
+                            data.loc[row.Index + j - t:row.Index+j, 'chem_%'] = 'cas' + str(i)
+                        break
+                    # i '-' found: range --> label until one token before '-'
+                    if data.loc[row.Index +j -t, 'word'] == '-':
+                        data.loc[row.Index + j - (t+1):row.Index-j, 'chem_%'] = 'cas' + str(i)
+                        break
+
+                    #stop is looking for more than 10 tokens
+                    if t == 10:
+                        data.loc[row.Index +j -1, 'chem_%'] = 'cas' + str(i)
+                        break
+                    
+                    t += 1
+
+                break
+
+            
+
+        i += 1
+
 
         #look for word around CAS number to identify name of chemical element
         #in most of the cases: name after CAS number
