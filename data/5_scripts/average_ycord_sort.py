@@ -51,4 +51,4 @@ df = df.sort_values(['doc','Page','ycord_average','Xcord_first'],ascending=[True
 
 df.reset_index(inplace=True, drop = True)
 
-df.to_csv(os.path.join(ospath,'data_all_avg_ordered.csv'), encoding ='utf-8-sig')
+df.to_csv('data_all_avg_ordered.csv', encoding ='utf-8-sig')
