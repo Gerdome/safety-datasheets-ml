@@ -4,6 +4,7 @@ import os
 import re
 from operator import itemgetter
 from datetime import datetime
+import csv
 
 
 def prepare_data (filename):
@@ -12,7 +13,7 @@ def prepare_data (filename):
     ospath =  os.path.dirname(__file__) 
 
     #specify relative path to data files
-    datadir = 'data/1_working/'
+    datadir = 'data/2_final/'
 
     #full path to data files
     datapath = os.path.join(ospath, datadir)
@@ -38,7 +39,7 @@ def create_output (data, filename):
     #full path to data files
     datapath = os.path.join(ospath, datadir)    
 
-    data.to_csv(datapath + filename, encoding='utf-8-sig')
+    data.to_csv(filename, encoding='utf-8-sig')
 
 
 def chap_identifier (data):
@@ -159,7 +160,7 @@ def subchapter_identifier (data):
                     break
                                 
             #Set indicator if word is part of chapter label
-            data.loc[row.Index:row.Index+(i), 'subchapter'] = 1
+            data.loc[row.Index:row.Index+(i), 'subchapter'] = 2
 
         else:
             # if no number for subchapter availabe --> look for words
@@ -168,7 +169,7 @@ def subchapter_identifier (data):
                 if w in (0,3,5,7,8):
                     if row.word == subchapter_first_words[w][0] and 'Bold' in data.loc[row.Index,'font_name']:
                         #Set indicator if word is part of chapter label
-                        data.loc[row.Index, 'subchapter'] = 1
+                        data.loc[row.Index, 'subchapter'] = 2
 
                 # sometimes more than one word       
                 elif w in (1,2,4,6):
@@ -202,7 +203,184 @@ def subchapter_identifier (data):
 
 
 
-#def chemicals_identifier (data):
+def chemicals_identifier (data):
+
+    #set directory path of current script
+    ospath =  os.path.dirname(__file__) 
+
+    #specify relative path to chem dict file
+    chemicals_dir = 'data/4_chemicals/'
+
+    #full path to chem dict file
+    chempath = os.path.join(ospath, chemicals_dir)
+
+    with open(chempath + 'cas_chemical_mapping.csv') as f:
+        next(f)  # Skip the header
+        reader = csv.reader(f, skipinitialspace=True)
+        cas_mapping = dict(reader)
+    
+    print(cas_mapping)
+
+    data['chem'] = np.nan
+    stop_list = ['ABSCHNITT','Erste-Hilfe-Maßnahmen']
+
+    '''
+    filter out relevant data (only data in chapter 3.2)
+    '''
+
+    for row in data.loc[:, ['word']].itertuples(index=True):
+
+        #search for start of chapter 3.2
+        if row.word == '3.2' or row.word == '3.2.' or (row.word == 'Zusammensetzung' and data.loc[row.Index + 1,'word'] == '/' and str(data.loc[row.Index + -1,'word']) == '3'):
+            #first word of 3.2
+            i = 0
+            while True:
+                i += 1
+                
+                #help variable for stop word search
+                stop_word = False
+
+                # if beginning of subchapter --> end of header
+                for stp in stop_list:
+                    if stp == data.loc[row.Index + i,'word']:
+                        stop_word = True
+                        #break from inner stp loop
+                        break
+
+                #break from outer while loop
+                if stop_word == True:
+                    break
+
+            #Set indicator if word is part of chapter label
+            data.loc[row.Index:row.Index+(i-1), 'chapter 3.2'] = 1
+
+    doc = ''
+
+        
+    # use regex to identify CAS numbers
+    for row in data.loc[data['chapter 3.2'] == 1, ['word']].itertuples(index=True):
+        #regex
+        if re.match(r"\d{4}-\d{2}-\d{1}$", str(row.word)) or re.match(r"\d{3}-\d{2}-\d{1}$", str(row.word)) or re.match(r"\d{5}-\d{2}-\d{1}$", str(row.word)) or re.match(r"\d{6}-\d{2}-\d{1}$", str(row.word)):
+
+            # check if start of new doc
+            if data.loc[row.Index, 'doc'] != doc:
+                i = 1
+            doc = data.loc[row.Index, 'doc']
+
+            #label cas nr according to current document
+            data.loc[row.Index, 'chem'] = int(str(31) + str(i))
+
+            #save cas nr
+            cas_nr = str(row.word)
+            #look in dict for corresponding name of cas nr
+            cas_name = str(cas_mapping[cas_nr])
+
+            # look for cas names in both directions
+            for k in range (30):
+                #current tokens for both directions
+                token_down = str(data.loc[row.Index+k,'word']).lower()
+                token_up = str(data.loc[row.Index-k,'word']).lower()
+
+                # if token is substring of cas_name --> label as name (only if len >2 or digit)
+                if token_down in cas_name.lower() and len(token_down) > 2:
+                    data.loc[row.Index+k, 'chem'] = int(str(32) + str(i))
+                # if not: check if substrings of token with len of 3 occur in cas_name
+                elif len(token_down) > 3:
+                    sliding_tokens = [token_down[i:i+4] for i in range(len(token_down)-3)]
+                    if any(token in cas_name.lower() for token in sliding_tokens):
+                        data.loc[row.Index+k, 'chem'] = int(str(32) + str(i))
+
+                # if token is substring of cas_name --> label as name (only if len >2 or digit)
+                if token_up in cas_name.lower() and len(token_up) > 2:
+                    data.loc[row.Index-k, 'chem'] = int(str(32) + str(i))
+                # if not: check if substrings of token with len of 3 occur in cas_name
+                elif len(token_up) > 3:
+                    sliding_tokens = [token_up[i:i+4] for i in range(len(token_up)-3)]
+                    if any(token in cas_name.lower() for token in sliding_tokens):
+                        data.loc[row.Index-k, 'chem'] = int(str(32) + str(i))
+
+            #look for % and ranges in both directions
+            j = 0
+
+            while True:
+                j += 1
+
+                #sd 47, 57, 61, 82, 98
+
+                if j == 100:
+                    break
+                
+                if data.loc[row.Index-2,'word'] == '-':
+                    data.loc[row.Index -3:row.Index -1 ,'chem'] = int(str(33) + str(i))
+                    break
+
+                if data.loc[row.Index+2,'word'] == '-':
+                    print(row.Index)
+                    data.loc[row.Index +1:row.Index + 3 ,'chem'] = int(str(33) + str(i))
+                    break
+
+                if data.loc[row.Index+1,'word'] == '%':
+                    data.loc[row.Index + 3, 'chem'] = int(str(33) + str(i))
+                    break
+
+                if data.loc[row.Index+j,'word'] == '<':
+                    data.loc[row.Index +j:row.Index +j + 1, 'chem'] = int(str(33) + str(i))
+                    break
+
+                #look for % ratio around CAS number
+                if data.loc[row.Index-j,'word'] == '%':
+                    data.loc[row.Index -j, 'chem'] = int(str(33) + str(i))
+
+                    #Look for all the digits assigned to the % symbol
+                    t = 0
+                    while True:
+                        t += 1
+                        # stop if '<'
+                        if data.loc[row.Index -j -t, 'word'] == '<' or '≤':
+                            # if <, check if token before '-' --> also range --> take token before as well
+                            if data.loc[row.Index -j -t - 1, 'word'] == '-':
+                                data.loc[row.Index - j - t - 2:row.Index-j, 'chem'] = int(str(33) + str(i))
+                            else:
+                                data.loc[row.Index - j - t:row.Index-j, 'chem'] = int(str(33) + str(i))
+                            break
+                        # i '-' found: range --> label until one token before '-'
+                        if data.loc[row.Index -j -t, 'word'] == '-':
+                            data.loc[row.Index - j - (t+1):row.Index-j, 'chem'] = int(str(33) + str(i))
+                            break
+                        #stop is looking for more than 10 tokens
+                        if t == 10:
+                            data.loc[row.Index -j -1, 'chem'] = int(str(33) + str(i))
+                            break
+                    break
+
+                if data.loc[row.Index+j,'word'] == '%':
+                    data.loc[row.Index +j, 'chem'] = int(str(33) + str(i))
+
+                    #Look for all the digits assigned to the % symbol
+                    t = 1 
+                    while True:
+                        # if '<' 
+                        if data.loc[row.Index +j -t, 'word'] == '<' or '≤':
+                            # if <, check if token before '-' --> also range --> take token before as well
+                            if data.loc[row.Index +j -t - 1, 'word'] == '-':
+                                data.loc[row.Index + j - t - 2:row.Index+j, 'chem'] = int(str(33) + str(i))
+                            else:
+                                data.loc[row.Index + j - t:row.Index+j, 'chem'] = int(str(33) + str(i))
+                            break
+                        # i '-' found: range --> label until one token before '-'
+                        if data.loc[row.Index +j -t, 'word'] == '-':
+                            data.loc[row.Index + j - (t+1):row.Index-j, 'chem'] = int(str(33) + str(i))
+                            break
+
+                        #stop is looking for more than 10 tokens
+                        if t == 10:
+                            data.loc[row.Index +j -1, 'chem'] = int(str(33) + str(i))
+                            break
+                        t += 1
+                    break
+            i += 1
+
+    return data
 
 
 def company_identifier (data):
@@ -604,7 +782,7 @@ def version_identifier (data):
 
     version_dict = {
         'Versionsnummer', 'Version', 'Versionsnummer:' , 'Version:' , 'Revisions-Nr:' , 'Revisions-Nr',
-        'Revisions-nr' , 'Revisionsnummer' , 'Revisionsnummer:', 'Rev-Nr.:' , 'Rev-Nr:' , 'Version-Nr'
+        'Revisions-nr' , 'Revisionsnummer' , 'Revisionsnummer:', 'Rev-Nr:' , 'Version-Nr'
     }
 
     l1 = []
@@ -638,13 +816,14 @@ def combine_labels (data):
     labels = [
                 #'chapter',
                 #'subchapter',
-                #'chem',
+                'chem',
                 #'company',
-                'date',
+                #'date',
                 #'directive',
                 #'signal',
-                #'usecase',
-                'version'
+                #'usecase_pro',
+                #'usecase_con'
+                #'version'
     ]
     
     data['label'] = np.nan
@@ -662,19 +841,20 @@ def combine_labels (data):
 
 def main ():
     
-    data = prepare_data('data_0_50_avg_ordered.csv')
+    data = prepare_data('data_all_avg_ordered.csv')
 
     #Select identifiers to run
     identifier = [
         #chap_identifier,           #1
         #subchapter_identifier,     #2
-        #chemicals_identifier,      #3
+        chemicals_identifier,      #3
         #company_identifier,        #4
-        date_identifier,           #5-8
+        #date_identifier,           #5-8
         #directive_identifier,      #9
         #signal_identifier,         #10
-        #usecase_identifier,         #11-12
-        version_identifier         #13
+        #usecase_identifier,        #11-12
+        #version_identifier,         #13
+        #chemicals_identifier,       #14-16
         ]
     
     for i in identifier:
@@ -684,9 +864,11 @@ def main ():
 
         print ('********** End: ' + i.__name__ + ' **********')
 
+    create_output(data, 'data_chem_labeled.csv')
+
     combine_labels(data)
 
-    create_output(data, 'date_0_50_test_ap.csv')
+    create_output(data, 'data_chem_labeled.csv')
 
     
 if __name__ == '__main__':
