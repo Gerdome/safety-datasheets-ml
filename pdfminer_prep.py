@@ -42,7 +42,7 @@ from nltk.tokenize import word_tokenize
 '''
 
 '''
-pdf nr: 42, 72, 124, 145,259, 298, 368 not in data !
+pdf nr: 42, 72, 124, 145,259, 298, 368, 369, 450, 451, 605, 623 not in data ! 
 '''
 
 #set directory path of current script
@@ -154,7 +154,7 @@ def parse_words(lt_objs):
                                                                     word = ''
                                                                 
                                                                 # take 'n.v' as an exception and check that . is not in between numbers or dates
-                                                                elif c.get_text() in ('.') and not hasNumbers(word) and not word == 'n':
+                                                                elif c.get_text() in ('.') and not hasNumbers(word) and not word == 'n' and '@' not in word:
                                                                     words.extend([word, str(c.get_text())])
                                                                     pages.extend([pagenum, pagenum])
                                                                     xcords_first.extend([xcord_first,c.bbox[0]])
@@ -288,3 +288,42 @@ df['special_char'] = df['word'].apply(lambda x: 1 if (x in ('"*"', 'ꞏ') or (le
 #= df['word'].apply(lambda x: 1 if x in ('.',',','(', ')', '–', '[', '·','{', '}', ']', ':', ';', "'", '"','?', '/', '*','!', '@', '#', '&', '"*"', '`', '~', '$', '^', '+', '=', '<', '>', 'ꞏ') else 0 )
 
 df.to_csv('data_all_ordered.csv', index=False, encoding='utf-8-sig')
+
+yc = df['Ycord_first']
+yc_new = []
+
+counter = 0
+first = True
+for index, i in enumerate(yc):
+
+	#very first row
+	if first == True:
+		avg = i
+		counter += 1 
+	elif abs(avg - i) <= 5:
+		avg = avg - ((avg - i)/(counter+1))
+		counter += 1
+		#very last row
+		if index == (len(yc)-1):
+			yc_new += counter * [avg]
+	elif abs(avg - i) > 5:
+		yc_new += counter * [avg]
+		avg = i
+		counter = 1
+
+
+	first = False
+
+yc_new.append(yc_new[-1])
+
+print(len(yc_new))
+print(df.shape)
+
+df['ycord_average'] = yc_new
+
+
+df = df.sort_values(['doc','Page','ycord_average','Xcord_first'],ascending=[True,True,False,True])
+
+df.reset_index(inplace=True, drop = True)
+
+df.to_csv('data_all_avg_ordered.csv', index=False, encoding='utf-8-sig')
