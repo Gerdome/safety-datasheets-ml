@@ -287,7 +287,7 @@ df = df[ df["word"] != ""]
 df['special_char'] = df['word'].apply(lambda x: 1 if (x in ('"*"', 'ꞏ') or (len(x) == 1 and x.isalnum () == False)) else 0 )
 #= df['word'].apply(lambda x: 1 if x in ('.',',','(', ')', '–', '[', '·','{', '}', ']', ':', ';', "'", '"','?', '/', '*','!', '@', '#', '&', '"*"', '`', '~', '$', '^', '+', '=', '<', '>', 'ꞏ') else 0 )
 
-df.to_csv('data_all_ordered.csv', index=False, encoding='utf-8-sig')
+df.to_csv('data_all_ordered.csv', encoding='utf-8-sig')
 
 yc = df['Ycord_first']
 yc_new = []
@@ -326,4 +326,4 @@ df = df.sort_values(['doc','Page','ycord_average','Xcord_first'],ascending=[True
 
 df.reset_index(inplace=True, drop = True)
 
-df.to_csv('data_all_avg_ordered.csv', index=False, encoding='utf-8-sig')
+df.to_csv('data_all_avg_ordered.csv', encoding='utf-8-sig')
