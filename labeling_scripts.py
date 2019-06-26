@@ -196,7 +196,7 @@ def subchapter_identifier (data):
                                 break
 
                         #Set indicator if word is part of chapter label
-                        data.loc[row.Index:row.Index+(i), 'subchapter'] = 1
+                        data.loc[row.Index:row.Index+(i), 'subchapter'] = 2
 
     return data
 
@@ -261,7 +261,7 @@ def company_identifier (data):
                     #Set value for extracted company name
                     data.loc[row.Index-i+1:row.Index, 'company_name'] = company_str_r
                     #Set indicator if word is part of company name
-                    data.loc[row.Index-i+1:row.Index+1, 'company'] = 1
+                    data.loc[row.Index-i+1:row.Index+1, 'company'] = 4
             #break from outer lf loop        
             break
     return data
@@ -271,22 +271,22 @@ def date_identifier (data):
     #Labels
     date_labels = {
         #1. Druckdatum/Erstellung
-        'Druck':  ['druck', 'ausgabe', 'ausstellung', 'erstellung', 'sd-datum', 'erstellt', 'ausgestellt'],
+        5:  ['druck', 'ausgabe', 'ausstellung', 'erstellung', 'sd-datum', 'erstellt', 'ausgestellt'],
         #2. Überarbeitungsdatum
-        'Überarbeitung':  ['überarbeit', 'änderung', 'revision', 'bearbeitung', 'quick-fds'],
+        6:  ['überarbeit', 'änderung', 'revision', 'bearbeitung', 'quick-fds'],
         #3. Datum alte Version
-        'Vorgänger':  ['ersetzt', 'ersatz', 'fassung', 'letzten'],
+        7:  ['ersetzt', 'ersatz', 'fassung', 'letzten'],
         #4. Gültigkeitsdatum
-        'Gültig':  ['kraft', 'freigabe'],
+        8:  ['kraft', 'freigabe'],
         #5. Negative Exceptions
-        'Exclude': ['sblcore', 'artikel']
+        np.nan: ['sblcore', 'artikel']
         #6. All other not explicit listed cases are also printdate
     }
 
     #Add new columns for feature generation
     data['date_nr'] = np.nan
     data['date_string'] = np.nan
-    data['date_cat'] = np.nan
+    data['date'] = np.nan
     data['date_stopword'] = np.nan
 
     #Filter out special characters for simpler trigger detection
@@ -342,7 +342,7 @@ def date_identifier (data):
                     else:
                         date_label = 'Druck_implizit'
                     # create label in working csv
-                    data.loc[org_index, 'date_cat'] = date_label
+                    data.loc[org_index, 'date'] = date_label
 
                     # Add stopword label
                     stop = False
@@ -375,7 +375,7 @@ def directive_identifier (data):
         #search for reach_id
         for rid in reach_id:
             if row.word_low.find(rid) != -1:
-                data.loc[row.Index, 'directive'] = 1
+                data.loc[row.Index, 'directive'] = 9
 
     return data
 
@@ -407,7 +407,7 @@ def signal_identifier (data):
                     for rng in reach_range:
                         if rng == signal:
                             temp = int(data_iter.loc[row.Index+i, 'index'])
-                            data.loc[temp, 'signal'] = 1
+                            data.loc[temp, 'signal'] = 10
                             keepsearching = False
     return data
 
@@ -579,11 +579,11 @@ def usecase_identifier (data):
                                             helpcheck = data_iter.loc[j, 'word_low'] + ' ' + data_iter.loc[j+1, 'word_low']
                                             if helpcheck == 'des stoffs':
                                                 temp2 = int(data_iter.loc[j+4, 'index'])
-                                                data.loc[temp2:temp3, 'usecase_pro'] = 1
+                                                data.loc[temp2:temp3, 'usecase_pro'] = 11
                                             else:
-                                                data.loc[temp2:temp3, 'usecase_pro'] = 1
+                                                data.loc[temp2:temp3, 'usecase_pro'] = 11
                                         else:
-                                            data.loc[temp2:temp3, 'usecase_con'] = 1
+                                            data.loc[temp2:temp3, 'usecase_con'] = 12
                                         j = end_index
                                         keepsearching = False
                                         detect_start = ''
@@ -628,60 +628,41 @@ def version_identifier (data):
     # fill in identified labels in data
     data['version'] = np.nan
     for j in l1:
-        data.loc[j,'version'] = 1
+        data.loc[j,'version'] = 13
 
     return data
 
 
 def combine_labels (data):
     
+    labels = [
+                #'chapter',
+                #'subchapter',
+                #'chem',
+                #'company',
+                'date',
+                #'directive',
+                #'signal',
+                #'usecase',
+                'version'
+    ]
+    
     data['label'] = np.nan
+    
+    data['nr_labels'] = np.nan
 
-    for row in data.loc[:,['word']].itertuples(index=True):
+    data['nr_labels'] = data[labels].apply(lambda x: x.notnull().sum(), axis='columns')
 
-        if str(data.loc[row.Index, 'chapter']) == 1:
-            data.loc[row.Index,'label'] = 1
-
-        elif str(data.loc[row.Index, 'subchapter']) == 1:
-            data.loc[row.Index,'label'] = 2
-
-        elif str(data.loc[row.Index, 'chem']) == 'cas':
-            data.loc[row.Index,'label'] = 3
-
-        elif str(data.loc[row.Index, 'company']) == 1:
-            data.loc[row.Index,'label'] = 4
-
-        elif str(data.loc[row.Index, 'dates']) == 'Druck':
-            data.loc[row.Index,'label'] = 5
-        elif str(data.loc[row.Index, 'dates']) == 'Gültig':
-            data.loc[row.Index,'label'] = 6
-        elif str(data.loc[row.Index, 'dates']) == 'Nicht zuordbar':
-            data.loc[row.Index,'label'] = 7
-        elif str(data.loc[row.Index, 'dates']) == 'Überarbeitung':
-            data.loc[row.Index,'label'] = 8
-        elif str(data.loc[row.Index, 'dates']) == 'Vorgänger':
-            data.loc[row.Index,'label'] = 9
-
-        elif str(data.loc[row.Index, 'directive']) == 1:
-            data.loc[row.Index,'label'] = 10
-        
-        elif str(data.loc[row.Index, 'signal']) == 1:
-            data.loc[row.Index,'label'] = 11
-        
-        elif str(data.loc[row.Index, 'usecase_pro']) == 1:
-            data.loc[row.Index,'label'] = 12
-        elif str(data.loc[row.Index, 'usecase_con']) == 1:
-            data.loc[row.Index,'label'] = 13
-        
-        elif str(data.loc[row.Index, 'version']) == 1:
-            data.loc[row.Index,'label'] = 14
-
+    data['label'] = data[labels].max(1) 
+    
+    #data = data.drop(labels, 1)
+    
     return data
 
 
 def main ():
     
-    data = prepare_data('data_all_avg_ordered.csv')
+    data = prepare_data('data_0_50_avg_ordered.csv')
 
     #Select identifiers to run
     identifier = [
@@ -689,11 +670,11 @@ def main ():
         #subchapter_identifier,     #2
         #chemicals_identifier,      #3
         #company_identifier,        #4
-        #date_identifier,           #5-9
-        #directive_identifier,      #10
-        #signal_identifier,         #11
-        usecase_identifier,         #12-13
-        #version_identifier         #14
+        date_identifier,           #5-8
+        #directive_identifier,      #9
+        #signal_identifier,         #10
+        #usecase_identifier,         #11-12
+        version_identifier         #13
         ]
     
     for i in identifier:
@@ -703,9 +684,9 @@ def main ():
 
         print ('********** End: ' + i.__name__ + ' **********')
 
-    #combine_labels(data)
+    combine_labels(data)
 
-    create_output(data, 'usecase_all_identified_ap.csv')
+    create_output(data, 'date_0_50_test_ap.csv')
 
     
 if __name__ == '__main__':
