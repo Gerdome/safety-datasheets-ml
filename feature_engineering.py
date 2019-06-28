@@ -9,6 +9,7 @@ from operator import itemgetter
 import datetime
 from dateutil.parser import parse
 from nltk.corpus import stopwords
+import math
 
 
 def prepare_data (filename):
@@ -343,13 +344,22 @@ def create_features (data):
 
 def create_window (data, window_size):
     
-    window_plus1 = data.loc[1:, 'word.is.lower':'word.is.newline']
+    final_data = pd.DataFrame (data)
+
+    for i in range (1, math.ceil(window_size/2)):
+        data_pre = data.loc[:, 'word.is.lower':'word.is.newline'].shift(i).add_prefix ('-' + str(i) + '_')
+        data_suc = data.loc[:, 'word.is.lower':'word.is.newline'].shift(-i).add_prefix ('+' + str(i) + '_')
+        final_data = pd.concat([final_data, data_pre, data_suc], axis=1, sort=False)
+    
+    return final_data
 
 def main ():
     
     data = prepare_data('data_all_labeled.csv')
 
     #data = create_features(data)
+
+    #data = create_window(data, 13)
 
     #create_output(data, 'final.csv')
     
