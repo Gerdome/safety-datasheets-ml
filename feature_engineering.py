@@ -306,42 +306,11 @@ def create_features (data):
 
     return final_data
 
-    '''
-
-            #1. Druckdatum/Erstellung
-            5:  ['druck', 'ausgabe', 'ausstellung', 'erstellung', 'sd-datum', 'erstellt', 'ausgestellt'],
-            #2. Überarbeitungsdatum
-            6:  ['überarbeit', 'änderung', 'revision', 'bearbeitung', 'quick-fds'],
-            #3. Datum alte Version
-            7:  ['ersetzt', 'ersatz', 'fassung', 'letzten'],
-            #4. Gültigkeitsdatum
-            8:  ['kraft', 'freigabe'],
-
-
-    if i > 3:
-            features['word[-1]'].append(str(words[i-1]))
-            features['word[-2]'].append(str(words[i-2]))
-            features['word[-3]'].append(str(words[i-3]))
-            features['-1:word.lower'].append(str(words[i-1]).lower())
-            features['-1:word.istitle'].append(str(words[i-1]).istitle())
-            features['-1:word.isupper'].append(str(words[i-1]).isupper())
-
-            if str(words[i-1]) in ('.',',','(', ')', '–', '[', '·','{', '}', ']', ':', ';', "'", '"','?', '/', '*','!', '@', '#', '&', '"*"', '`', '~', '$', '^', '+', '=', '<', '>','%'):
-                features['-1:word.isspecial.char'].append(True)
-            else:
-                features['-1:word.isspecial.char'].append(False)
-
-        else:
-            features['word[-1]'].append(np.nan)
-            features['word[-2]'].append(np.nan)
-            features['word[-3]'].append(np.nan)
-            features['-1:word.lower'].append(np.nan)
-            features['-1:word.istitle'].append(np.nan)
-            features['-1:word.isupper'].append(np.nan)
-            features['-1:word.isspecial.char'].append(np.nan)
-
-    '''
-
+#!!!!Für die Methode müssen die Spalten noch in die richtige Reihenfolge gebracht werden 
+# --> unnötige Spalten droppen: special_char (haben ja bereits is.special char)+ alles außer Index, Dokumentname, Seite, x, y_avg am anfang zur besseren orientierung
+# --> spalte word noch in den Feature bereich einschließen
+# --> Labels an anfang nach letzter Spalte für Orientierung --> erleichtert das Hinzufügen von Feature window + Lesbarkeit bei betrachtung der Datei
+# und dann hier den Bereich anpassen
 def create_window (data, window_size):
     
     final_data = pd.DataFrame (data)
