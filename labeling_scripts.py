@@ -39,7 +39,7 @@ def create_output (data, filename):
     #full path to data files
     datapath = os.path.join(ospath, datadir)    
 
-    data.to_csv(filename, encoding='utf-8-sig')
+    data.to_csv(datapath + filename, encoding='utf-8-sig')
 
 
 def chap_identifier (data):
@@ -219,7 +219,7 @@ def chemicals_identifier (data):
         reader = csv.reader(f, skipinitialspace=True)
         cas_mapping = dict(reader)
     
-    print(cas_mapping)
+    #print(cas_mapping)
 
     data['chem'] = np.nan
     stop_list = ['ABSCHNITT','Erste-Hilfe-Maßnahmen']
@@ -315,7 +315,7 @@ def chemicals_identifier (data):
                     break
 
                 if data.loc[row.Index+2,'word'] == '-':
-                    print(row.Index)
+                    #print(row.Index)
                     data.loc[row.Index +1:row.Index + 3 ,'chem'] = int(str(33) + str(i))
                     break
 
@@ -866,9 +866,8 @@ def main ():
 
     create_output(data, 'data_chem_labeled.csv')
 
-    combine_labels(data)
+    #combine_labels(data)
 
-    create_output(data, 'data_chem_labeled.csv')
 
     
 if __name__ == '__main__':
