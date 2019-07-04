@@ -123,9 +123,6 @@ def create_features (data):
         'is.page.3':[],
 
         'word.is.newline': []    
-
-
-
         }
 
     '''
@@ -300,17 +297,10 @@ def create_features (data):
             
     features = pd.DataFrame(features)
 
-    final_data = pd.concat([data, features], axis=1, sort=False)
+    final_data = pd.concat((data[['word','label']], features), axis=1, sort=False)
         
-    #final_data = final_data.drop(labels,1)
-
     return final_data
 
-#!!!!Für die Methode müssen die Spalten noch in die richtige Reihenfolge gebracht werden 
-# --> unnötige Spalten droppen: special_char (haben ja bereits is.special char)+ alles außer Index, Dokumentname, Seite, x, y_avg am anfang zur besseren orientierung
-# --> spalte word noch in den Feature bereich einschließen
-# --> Labels an anfang nach letzter Spalte für Orientierung --> erleichtert das Hinzufügen von Feature window + Lesbarkeit bei betrachtung der Datei
-# und dann hier den Bereich anpassen
 def create_window (data, window_size):
     
     final_data = pd.DataFrame (data)
@@ -326,11 +316,11 @@ def main ():
     
     data = prepare_data('data_all_labeled.csv')
 
-    #data = create_features(data)
+    data = create_features(data)
 
     #data = create_window(data, 13)
 
-    #create_output(data, 'final.csv')
+    create_output(data, 'final_gm.csv')
     
 if __name__ == '__main__':
     main()
