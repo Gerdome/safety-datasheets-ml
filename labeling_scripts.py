@@ -203,7 +203,7 @@ def subchapter_identifier (data):
 
 
 
-def chemicals_identifier (data):
+    def chemicals_identifier (data):
 
     #set directory path of current script
     ospath =  os.path.dirname(__file__) 
@@ -517,6 +517,7 @@ def date_identifier (data):
                     if max(temp, key=itemgetter(1))[1] >= 0:
                         date_label = max(temp, key=itemgetter(1))[0]
 
+#!!!! "Druck_implizit" fuehrt zu Fehlern beim Combining, da es kein Int ist.
                     else:
                         date_label = 'Druck_implizit'
                     # create label in working csv
@@ -822,7 +823,7 @@ def combine_labels (data):
                 #'directive',
                 #'signal',
                 #'usecase_pro',
-                #'usecase_con'
+                #'usecase_con',
                 #'version'
     ]
     
