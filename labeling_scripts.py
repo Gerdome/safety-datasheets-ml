@@ -518,7 +518,7 @@ def date_identifier (data):
                         date_label = max(temp, key=itemgetter(1))[0]
 
                     else:
-                        date_label = 'print_implicit'
+                        date_label = 'printdate'
                     # create label in working csv
                     data.loc[org_index, 'date'] = date_label
 

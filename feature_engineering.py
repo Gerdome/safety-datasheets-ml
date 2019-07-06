@@ -315,7 +315,7 @@ def create_window (data):
 
     #copies the previous and following features for every token in a given window
     for i in range (1, math.ceil(window_size/2)):
-        print ('Window: ' + i)
+        print ('Window: ',i)
         data_pre = data.loc[:, 'word.is.lower':'299'].shift(i).add_prefix ('-' + str(i) + '_')
         data_suc = data.loc[:, 'word.is.lower':'299'].shift(-i).add_prefix ('+' + str(i) + '_')
         final_data = pd.concat([final_data, data_pre, data_suc], axis=1, sort=False)
@@ -329,10 +329,12 @@ def encode_columns (data):
     data.loc [:,'date'] = pd.Categorical(data['date'])
     date_dummies = pd.get_dummies(data['date'], prefix = 'date') 
     data.loc [:,'usecase'] = pd.Categorical(data['usecase'])
-    usecase_dummies = pd.get_dummies(data['usecase'], prefix = 'usecase')
+    usecase_dummies = pd.get_dummies(data['usecase'])
+    data.loc [:,'grid.area'] = pd.Categorical(data['grid.area'])
+    date_dummies = pd.get_dummies(data['grid.area'], prefix = 'grid.area') 
 
     #drop features which are not used in the modell
-    data = data.drop(['date', 'usecase', 'date_nr', 'date_string', 'date_stopword', 'chapter 3.2', 'company_name'], 1)   
+    data = data.drop(['date_nr', 'date_string', 'date_stopword', 'chapter 3.2', 'company_name', 'usecase_part'], 1)   
 
     #encode labels with one class
     labels_dummies = pd.DataFrame(data.loc[:,'chapter':'company'])
