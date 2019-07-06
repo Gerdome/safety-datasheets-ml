@@ -34,7 +34,7 @@ def create_output (data, filename):
     ospath =  os.path.dirname(__file__) 
 
     #specify relative path to data files
-    datadir = 'data/1_working/'
+    datadir = 'data/2_final/'
 
     #full path to data files
     datapath = os.path.join(ospath, datadir)    
@@ -85,7 +85,7 @@ def chap_identifier (data):
                         break
                                 
                 #Set indicator if word is part of chapter label
-                data.loc[row.Index:row.Index+(i-1), 'chapter'] = 1
+                data.loc[row.Index:row.Index+(i-1), 'chapter'] = 'chapter'
     return data
 
 def subchapter_identifier (data):
@@ -160,7 +160,7 @@ def subchapter_identifier (data):
                     break
                                 
             #Set indicator if word is part of chapter label
-            data.loc[row.Index:row.Index+(i), 'subchapter'] = 2
+            data.loc[row.Index:row.Index+(i), 'subchapter'] = 'subchapter'
 
         else:
             # if no number for subchapter availabe --> look for words
@@ -169,7 +169,7 @@ def subchapter_identifier (data):
                 if w in (0,3,5,7,8):
                     if row.word == subchapter_first_words[w][0] and 'Bold' in data.loc[row.Index,'font_name']:
                         #Set indicator if word is part of chapter label
-                        data.loc[row.Index, 'subchapter'] = 2
+                        data.loc[row.Index, 'subchapter'] = 'subchapter'
 
                 # sometimes more than one word       
                 elif w in (1,2,4,6):
@@ -197,13 +197,13 @@ def subchapter_identifier (data):
                                 break
 
                         #Set indicator if word is part of chapter label
-                        data.loc[row.Index:row.Index+(i), 'subchapter'] = 2
+                        data.loc[row.Index:row.Index+(i), 'subchapter'] = 'subchapter'
 
     return data
 
 
 
-    def chemicals_identifier (data):
+def chemicals_identifier (data):
 
     #set directory path of current script
     ospath =  os.path.dirname(__file__) 
@@ -439,7 +439,7 @@ def company_identifier (data):
                     #Set value for extracted company name
                     data.loc[row.Index-i+1:row.Index, 'company_name'] = company_str_r
                     #Set indicator if word is part of company name
-                    data.loc[row.Index-i+1:row.Index+1, 'company'] = 4
+                    data.loc[row.Index-i+1:row.Index+1, 'company'] = 'company'
             #break from outer lf loop        
             break
     return data
@@ -449,13 +449,13 @@ def date_identifier (data):
     #Labels
     date_labels = {
         #1. Druckdatum/Erstellung
-        5:  ['druck', 'ausgabe', 'ausstellung', 'erstellung', 'sd-datum', 'erstellt', 'ausgestellt'],
+        'printdate':  ['druck', 'ausgabe', 'ausstellung', 'erstellung', 'sd-datum', 'erstellt', 'ausgestellt'],
         #2. Überarbeitungsdatum
-        6:  ['überarbeit', 'änderung', 'revision', 'bearbeitung', 'quick-fds'],
+        'revisiondate':  ['überarbeit', 'änderung', 'revision', 'bearbeitung', 'quick-fds'],
         #3. Datum alte Version
-        7:  ['ersetzt', 'ersatz', 'fassung', 'letzten'],
+        'oldversiondate':  ['ersetzt', 'ersatz', 'fassung', 'letzten'],
         #4. Gültigkeitsdatum
-        8:  ['kraft', 'freigabe'],
+        'validdate':  ['kraft', 'freigabe'],
         #5. Negative Exceptions
         np.nan: ['sblcore', 'artikel']
         #6. All other not explicit listed cases are also printdate
@@ -517,9 +517,8 @@ def date_identifier (data):
                     if max(temp, key=itemgetter(1))[1] >= 0:
                         date_label = max(temp, key=itemgetter(1))[0]
 
-#!!!! "Druck_implizit" fuehrt zu Fehlern beim Combining, da es kein Int ist.
                     else:
-                        date_label = 'Druck_implizit'
+                        date_label = 'print_implicit'
                     # create label in working csv
                     data.loc[org_index, 'date'] = date_label
 
@@ -554,7 +553,7 @@ def directive_identifier (data):
         #search for reach_id
         for rid in reach_id:
             if row.word_low.find(rid) != -1:
-                data.loc[row.Index, 'directive'] = 9
+                data.loc[row.Index, 'directive'] = 'directive'
 
     return data
 
@@ -586,7 +585,7 @@ def signal_identifier (data):
                     for rng in reach_range:
                         if rng == signal:
                             temp = int(data_iter.loc[row.Index+i, 'index'])
-                            data.loc[temp, 'signal'] = 10
+                            data.loc[temp, 'signal'] = 'signal'
                             keepsearching = False
     return data
 
@@ -674,10 +673,8 @@ def usecase_identifier (data):
 
     #Add new column for part string
     data['usecase_part'] = np.nan
-    #Add new column for advised usecase
-    data['usecase_pro'] = np.nan
-    #Adde new column for unadvised usecase
-    data['usecase_con'] = np.nan
+    #Add new column for usecase
+    data['usecase'] = np.nan
 
 
 
@@ -758,11 +755,11 @@ def usecase_identifier (data):
                                             helpcheck = data_iter.loc[j, 'word_low'] + ' ' + data_iter.loc[j+1, 'word_low']
                                             if helpcheck == 'des stoffs':
                                                 temp2 = int(data_iter.loc[j+4, 'index'])
-                                                data.loc[temp2:temp3, 'usecase_pro'] = 11
+                                                data.loc[temp2:temp3, 'usecase'] = 'usecase_pro'
                                             else:
-                                                data.loc[temp2:temp3, 'usecase_pro'] = 11
+                                                data.loc[temp2:temp3, 'usecase'] = 'usecase_con'
                                         else:
-                                            data.loc[temp2:temp3, 'usecase_con'] = 12
+                                            data.loc[temp2:temp3, 'usecase'] = 'usecase_con'
                                         j = end_index
                                         keepsearching = False
                                         detect_start = ''
@@ -807,7 +804,7 @@ def version_identifier (data):
     # fill in identified labels in data
     data['version'] = np.nan
     for j in l1:
-        data.loc[j,'version'] = 13
+        data.loc[j,'version'] = 'version'
 
     return data
 
@@ -815,18 +812,37 @@ def version_identifier (data):
 def combine_labels (data):
     
     labels = [
-                #'chapter',
-                #'subchapter',
+                'chapter',
+                'subchapter',
+                'date',
+                'version',
+                'directive',
+                'signal',
+                'usecase',
                 'chem',
-                #'company',
-                #'date',
-                #'directive',
-                #'signal',
-                #'usecase_pro',
-                #'usecase_con',
-                #'version'
+                'company'          
     ]
     
+    #data['label'] = np.nan
+    data['label'] = ''
+
+    for l in labels:
+        data["label"] = data["label"] + data.loc[:, l].astype(str).replace('nan', '')
+    
+    #for l in labels:
+        #data['label'] = data['label'].str.cat(data[l])
+
+
+    '''
+    for row in data.loc[:, ['label']].itertuples(index=True):
+        for label in labels:
+            temp = data.loc[row.Index, label]
+            if pd.isna (temp) == False:
+                data.loc[row.Index, 'label'] = temp
+                break
+    '''
+        
+    '''
     data['label'] = np.nan
     
     data['nr_labels'] = np.nan
@@ -836,26 +852,25 @@ def combine_labels (data):
     data['label'] = data[labels].max(1) 
     
     #data = data.drop(labels, 1)
+    '''
     
     return data
-
 
 def main ():
     
     data = prepare_data('data_all_avg_ordered.csv')
-
+    
     #Select identifiers to run
     identifier = [
-        #chap_identifier,           #1
-        #subchapter_identifier,     #2
-        chemicals_identifier,      #3
-        #company_identifier,        #4
-        #date_identifier,           #5-8
-        #directive_identifier,      #9
-        #signal_identifier,         #10
-        #usecase_identifier,        #11-12
-        #version_identifier,         #13
-        #chemicals_identifier,       #14-16
+        chap_identifier,           
+        subchapter_identifier,     
+        date_identifier,
+        version_identifier,         
+        directive_identifier,      
+        signal_identifier,         
+        usecase_identifier,             
+        chemicals_identifier,
+        company_identifier       
         ]
     
     for i in identifier:
@@ -864,11 +879,10 @@ def main ():
         data = i (data)
 
         print ('********** End: ' + i.__name__ + ' **********')
-
-    create_output(data, 'data_chem_labeled.csv')
-
-    #combine_labels(data)
-
+    
+    combine_labels(data)
+    
+    create_output(data, 'data_all_labeled.csv')
 
     
 if __name__ == '__main__':
