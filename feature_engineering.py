@@ -296,31 +296,54 @@ def create_features (data):
             
     features = pd.DataFrame(features)
 
-    orientation_col = data[['doc', 'Page', 'ycord_average', 'word', 'label']]
+    orientation_col = data[['doc', 'Page', 'word', 'label']]
 
     labels = data.loc[:,'chapter':'company']
 
-    final_data = pd.concat((orientation_col, labels,features), axis=1, sort=False)
+    final_data = pd.concat((orientation_col, labels,features, data[['ycord_average', 'Xcord_first']]), axis=1, sort=False)
         
     return final_data
 
 def create_window (data):
-    #set window size
-    window_size = 13
-
-    #make embedding columns selectable as string for loc
-    data.columns = data.columns.astype(str)
-
-    final_data = pd.DataFrame (data)
-
-    #copies the previous and following features for every token in a given window
-    for i in range (1, math.ceil(window_size/2)):
-        print ('Window: ',i)
-        data_pre = data.loc[:, 'word.is.lower':'299'].shift(i).add_prefix ('-' + str(i) + '_')
-        data_suc = data.loc[:, 'word.is.lower':'299'].shift(-i).add_prefix ('+' + str(i) + '_')
-        final_data = pd.concat([final_data, data_pre, data_suc], axis=1, sort=False)
     
-    return final_data
+    #Feature Groups
+    ort_col = ['doc', 'Page', 'word', 'label', 'label_dum']
+    labels = ['chapter', 'subchapter', 'version', 'directive', 'signal', 'chem', 'company', 'date', 'date_oldversiondate', 'date_printdate', 'date_revisiondate', 'date_validdate', 'usecase', 'usecase_con', 'usecase_pro']
+    paper_feature = ['word.is.lower', 'word.is.upper', 'word.is.mixed.case', 'word.is.digit', 'word.contains.digit', 'word.is.special.char','word.len.1', 'word.len.3', 'word.len.5', 'word.len.7', 'word.len.9', 'word.len.11', 'word.len.13', 'word.is.stop']
+    date_specific_feature = ['word.is.print.date.trigger', 'word.is.revision.date.trigger', 'word.is.valid.date.trigger', 'word.is.oldversion.date.trigger']
+    #dropped 'word.contains.special.char'
+    new_feature = ['word.is.title', 'word.is.bold', 'word.is.newline','ycord_average','Xcord_first', 'grid.area_11', 'grid.area_12', 'grid.area_13', 'grid.area_14', 'grid.area_15', 'grid.area_16', 'grid.area_17', 'grid.area_18', 'grid.area_21', 'grid.area_22', 'grid.area_23', 'grid.area_24', 'grid.area_25', 'grid.area_26', 'grid.area_27', 'grid.area_28', 'grid.area_31', 'grid.area_32', 'grid.area_33', 'grid.area_34', 'grid.area_35', 'grid.area_36', 'grid.area_37', 'grid.area_38', 'grid.area_41', 'grid.area_42', 'grid.area_43', 'grid.area_44', 'grid.area_45', 'grid.area_46', 'grid.area_47', 'grid.area_48', 'is.page.1', 'is.page.2', 'is.page.3']
+
+    data_ord = data[ort_col + labels]
+
+    columns = [paper_feature, date_specific_feature, new_feature]
+
+    #create window for all features except word embedding
+    window_size_feat = 13
+    #copies the previous and following features for every token in a given window
+    for col in range (len(columns)):
+        sel_col = data[columns[col]]
+        data_ord = pd.concat([data_ord, sel_col], axis=1, sort=False)
+        for i in range (1, math.ceil(window_size_feat/2)):
+            print ('Window: ',col,i)
+            data_pre = sel_col.shift(i).add_prefix ('-' + str(i) + '_')
+            data_suc = sel_col.shift(-i).add_prefix ('+' + str(i) + '_')
+            data_ord = pd.concat([data_ord, data_pre, data_suc], axis=1, sort=False)
+    
+    data_ord.to_pickle('data_model_allfeatw13.pkl')
+
+    #create window for word embedding
+    window_size_emb = 13
+    sel_col = data.loc[:,'0':'299']
+    data_ord = pd.concat([data_ord, sel_col], axis=1, sort=False)
+    for i in range (1, math.ceil(window_size_emb/2)):
+        print ('Window_Emb: ',i)
+        data_pre = sel_col.shift(i).add_prefix ('-' + str(i) + '_')
+        data_suc = sel_col.shift(-i).add_prefix ('+' + str(i) + '_')
+        data_ord = pd.concat([data_ord, data_pre, data_suc], axis=1, sort=False)
+        data_ord.to_pickle('data_model_allfeatw13_web' + str(i) + '.pkl')
+
+    return data_ord
 
 
 def encode_columns (data): 
@@ -345,16 +368,22 @@ def encode_columns (data):
         #nan values get to -1 by catcodes --> change to 0
         labels_dummies[cl] = labels_dummies[cl].replace(-1, 0)
     
+    label_dum = pd.DataFrame(data['label'])
+    label_dum = pd.DataFrame(label_dum.loc[:,'label'].astype('category').cat.codes)
+    data.insert(loc=5, column = 'label_dum', value = label_dum)
+
     #first columns as id, not part of the model 
-    orientation_col = data.loc[:, 'doc':'label']
+    orientation_col = data.loc[:, 'doc':'label_dum']
     
     #select feature columns
-    features = data.loc[:, 'word.is.lower':'word.is.newline']
+    features = data.loc[:, 'word.is.lower':'Xcord_first']
     #change remaining features from True/False to 0/1
     features.loc[:,'word.is.lower'] = features['word.is.lower'].astype(int)
     features.loc[:,'word.is.title'] = features['word.is.lower'].astype(int)
     features.loc[:,'word.is.upper'] = features['word.is.lower'].astype(int)
     features.loc[:,'word.is.digit'] = features['word.is.digit'].astype(int)
+
+    
 
     encoded_data = pd.concat((orientation_col, labels_dummies, date_dummies, usecase_dummies, features), axis=1, sort=False)
 
@@ -416,6 +445,15 @@ def create_word_embedding (data):
 
     return emb_data
 
+def delete_samples (data):
+    
+    wrong = ['008_sd.pdf', '029_sd.pdf', '035_sd.pdf', '041_sd.pdf', '043_sd.pdf', '045_sd.pdf', '049_sd.pdf', '050_sd.pdf', '051_sd.pdf', '052_sd.pdf', '053_sd.pdf', '055_sd.pdf', '056_sd.pdf', '059_sd.pdf', '061_sd.pdf', '062_sd.pdf', '064_sd.pdf', '077_sd.pdf', '081_sd.pdf', '089_sd.pdf', '091_sd.pdf', '093_sd.pdf', '096_sd.pdf', '105_sd.pdf', '106_sd.pdf', '108_sd.pdf', '115_sd.pdf', '116_sd.pdf', '117_sd.pdf', '118_sd.pdf', '120_sd.pdf', '121_sd.pdf', '122_sd.pdf', '123_sd.pdf', '144_sd.pdf', '164_sd.pdf', '165_sd.pdf', '169_sd.pdf', '170_sd.pdf', '175_sd.pdf', '176_sd.pdf', '177_sd.pdf', '180_sd.pdf', '181_sd.pdf', '182_sd.pdf', '183_sd.pdf', '184_sd.pdf', '185_sd.pdf', '186_sd.pdf', '187_sd.pdf', '188_sd.pdf', '191_sd.pdf', '193_sd.pdf', '194_sd.pdf', '195_sd.pdf', '198_sd.pdf', '199_sd.pdf', '200_sd.pdf', '201_sd.pdf', '205_sd.pdf', '208_sd.pdf', '212_sd.pdf', '213_sd.pdf', '214_sd.pdf', '215_sd.pdf', '216_sd.pdf', '217_sd.pdf', '226_sd.pdf', '248_sd.pdf', '249_sd.pdf', '260_sd.pdf', '268_sd.pdf', '269_sd.pdf', '270_sd.pdf', '271_sd.pdf', '277_sd.pdf', '278_sd.pdf', '279_sd.pdf', '280_sd.pdf', '281_sd.pdf', '285_sd.pdf', '321_sd.pdf', '322_sd.pdf', '323_sd.pdf', '332_sd.pdf', '337_sd.pdf', '338_sd.pdf', '340_sd.pdf', '341_sd.pdf', '344_sd.pdf', '345_sd.pdf', '346_sd.pdf', '347_sd.pdf', '353_sd.pdf', '354_sd.pdf', '357_sd.pdf', '358_sd.pdf', '359_sd.pdf', '361_sd.pdf', '362_sd.pdf', '363_sd.pdf', '364_sd.pdf', '371_sd.pdf', '374_sd.pdf', '375_sd.pdf', '376_sd.pdf', '377_sd.pdf', '378_sd.pdf', '380_sd.pdf', '381_sd.pdf', '383_sd.pdf', '384_sd.pdf', '385_sd.pdf', '386_sd.pdf', '392_sd.pdf', '402_sd.pdf', '403_sd.pdf', '408_sd.pdf', '409_sd.pdf', '410_sd.pdf', '423_sd.pdf', '424_sd.pdf', '425_sd.pdf', '430_sd.pdf', '455_sd.pdf', '456_sd.pdf', '457_sd.pdf', '458_sd.pdf', '462_sd.pdf', '463_sd.pdf', '464_sd.pdf', '465_sd.pdf', '466_sd.pdf', '467_sd.pdf', '468_sd.pdf', '469_sd.pdf', '479_sd.pdf', '528_sd.pdf', '530_sd.pdf', '531_sd.pdf', '532_sd.pdf', '533_sd.pdf', '534_sd.pdf', '535_sd.pdf', '536_sd.pdf', '537_sd.pdf', '538_sd.pdf', '539_sd.pdf', '540_sd.pdf', '542_sd.pdf', '543_sd.pdf', '544_sd.pdf', '545_sd.pdf', '546_sd.pdf', '547_sd.pdf', '548_sd.pdf', '549_sd.pdf', '550_sd.pdf', '559_sd.pdf', '560_sd.pdf', '562_sd.pdf', '563_sd.pdf', '564_sd.pdf', '565_sd.pdf', '566_sd.pdf', '567_sd.pdf', '583_sd.pdf', '602_sd.pdf', '603_sd.pdf', '644_sd.pdf', '677_sd.PDF', '715_sd.pdf', '721_sd.pdf', '724_sd.pdf', '731_sd.pdf']
+
+    filtered = data[~data.doc.isin(wrong)]
+    filtered = filtered[pd.notnull(filtered['doc'])]
+    filtered = filtered.reset_index(drop=True)
+
+    return filtered
 
 
 def main ():
