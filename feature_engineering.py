@@ -379,8 +379,8 @@ def encode_columns (data):
     features = data.loc[:, 'word.is.lower':'Xcord_first']
     #change remaining features from True/False to 0/1
     features.loc[:,'word.is.lower'] = features['word.is.lower'].astype(int)
-    features.loc[:,'word.is.title'] = features['word.is.lower'].astype(int)
-    features.loc[:,'word.is.upper'] = features['word.is.lower'].astype(int)
+    features.loc[:,'word.is.title'] = features['word.is.title'].astype(int)
+    features.loc[:,'word.is.upper'] = features['word.is.upper'].astype(int)
     features.loc[:,'word.is.digit'] = features['word.is.digit'].astype(int)
 
     
