@@ -41,15 +41,12 @@ from nltk.tokenize import word_tokenize
  6) Finally process the file page by page 
 '''
 
-'''
-pdf nr: 42, 72, 124, 145,259, 298, 368, 369, 450, 451, 605, 623 not in data ! 
-'''
-
 #set directory path of current script
 ospath =  os.path.dirname(__file__) 
 
 #specify relative path to data files
-datadir = 'data/0_pdf/'
+#Change to 0_pdf folder for all PDFs
+datadir = 'data/demo/'
 
 #full path to data files
 datapath = os.path.join(ospath, datadir)
@@ -261,8 +258,6 @@ for d, entry in enumerate(entries):
 
 	i = i+1
 
-print(len(docs))
-#print(len(font_size))
 print(len(font_names))
 #creat empty dataframe
 df = pd.DataFrame( 
@@ -316,9 +311,6 @@ for index, i in enumerate(yc):
 yc_new.append(yc_new[-1])
 yc_new = yc_new[0:len(yc_new)-1]
 
-#print(len(yc_new))
-#print(df.shape)
-
 df['ycord_average'] = yc_new
 
 
@@ -326,4 +318,4 @@ df = df.sort_values(['doc','Page','ycord_average','Xcord_first'],ascending=[True
 
 df.reset_index(inplace=True, drop = True)
 
-df.to_csv('data_all_avg_ordered.csv', encoding='utf-8-sig')
+df.to_csv('01_data.csv', encoding='utf-8-sig')
