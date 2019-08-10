@@ -15,8 +15,11 @@ def prepare_data (filename):
     #specify relative path to data files
     datadir = 'data/1_output/'
 
-    #full path to data files
-    datapath = os.path.join(ospath, datadir)
+    #path for demo purpose
+    demodir = 'data/demo/'
+
+    #full path to data files - !! Change demodir to datadir for running with all PDFs !!
+    datapath = os.path.join(ospath, demodir)
 
     #read raw data csv
     data = pd.read_csv(datapath + filename, encoding='utf-8-sig', index_col = 0)
@@ -36,8 +39,11 @@ def create_output (data, filename):
     #specify relative path to data files
     datadir = 'data/1_output/'
 
-    #full path to data files
-    datapath = os.path.join(ospath, datadir)    
+    #path for demo purpose
+    demodir = 'data/demo/'
+
+    #full path to data files - !! Change demodir to datadir for running with all PDFs !!
+    datapath = os.path.join(ospath, demodir)  
 
     data.to_csv(datapath + filename, encoding='utf-8-sig')
 
@@ -858,7 +864,7 @@ def combine_labels (data):
 
 def main ():
     
-    data = prepare_data('data_all_avg_ordered.csv')
+    data = prepare_data('01_data.csv')
     
     #Select identifiers to run
     identifier = [
@@ -882,7 +888,7 @@ def main ():
     
     combine_labels(data)
     
-    create_output(data, 'data_all_labeled.csv')
+    create_output(data, '02_data.csv')
 
     
 if __name__ == '__main__':
