@@ -45,14 +45,22 @@ from nltk.tokenize import word_tokenize
 ospath =  os.path.dirname(__file__) 
 
 #specify relative path to data files
-#Change to 0_pdf folder for all PDFs
-datadir = 'data/demo/'
 
-#full path to data files
-datapath = os.path.join(ospath, datadir)
+#path for demo purposes (only 3 PDFs)
+demodir = 'data/demo/pdfs/'
+
+#path to all PDFs
+datadir = 'data/0_pdf'
+
+#full path to data files - !! Change demodir to datadir for running with all PDFs !!
+datapath = os.path.join(ospath, demodir)
 
 #list of all files
 entries = os.listdir(datapath)
+
+#    !! IMPORTANT!! 
+# In order to identify font_size, the line 'self.fontsize = fontsize' needs to be added in the __init__ method of the class LTChar
+# To do so, open the layout.py within your pdfminer library of your environment
 
 #define empty lists
 pages = []
@@ -60,7 +68,7 @@ xcord = []
 ycord = []
 xcords_first = []
 ycords_first = []
-#font_size = []
+font_size = []
 font_names = []
 content = []
 docs = []
@@ -106,7 +114,6 @@ def parse_words(lt_objs):
                         for o in obj._objs:
                                 if isinstance(o, LTTextLine):
                                         text=o.get_text()
-                                        #print(text)
                                         if text.strip():
                                                 word = ''
                                                 #iterate through characters
@@ -120,7 +127,7 @@ def parse_words(lt_objs):
                                                                     xcords_first.extend([xcord_first,c.bbox[0]])
                                                                     ycords_first.extend([ycord_first,c.bbox[1]])
                                                                     docs.extend([doc, doc])
-                                                                    #font_size.extend([fontsize,int(round(c.fontsize))])
+                                                                    font_size.extend([fontsize,int(round(c.fontsize))])
                                                                     font_names.extend([fontname,c.fontname])
                                                                     objects.extend([objectnum, objectnum])
                                                                     textboxes.extend([textboxnum, textboxnum])
@@ -132,7 +139,7 @@ def parse_words(lt_objs):
                                                                     xcords_first.extend([xcord_first,c.bbox[0]])
                                                                     ycords_first.extend([ycord_first,c.bbox[1]])
                                                                     docs.extend([doc, doc])
-                                                                    #font_size.extend([fontsize,int(round(c.fontsize))])
+                                                                    font_size.extend([fontsize,int(round(c.fontsize))])
                                                                     font_names.extend([fontname,c.fontname])
                                                                     objects.extend([objectnum, objectnum])
                                                                     textboxes.extend([textboxnum, textboxnum])
@@ -143,7 +150,7 @@ def parse_words(lt_objs):
                                                                     pages.extend([pagenum, pagenum])
                                                                     xcords_first.extend([xcord_first,c.bbox[0]])
                                                                     ycords_first.extend([ycord_first,c.bbox[1]])
-                                                                    #font_size.extend([fontsize,int(round(c.fontsize))])
+                                                                    font_size.extend([fontsize,int(round(c.fontsize))])
                                                                     font_names.extend([fontname,c.fontname])
                                                                     docs.extend([doc, doc])
                                                                     objects.extend([objectnum, objectnum])
@@ -156,7 +163,7 @@ def parse_words(lt_objs):
                                                                     pages.extend([pagenum, pagenum])
                                                                     xcords_first.extend([xcord_first,c.bbox[0]])
                                                                     ycords_first.extend([ycord_first,c.bbox[1]])
-                                                                    #font_size.extend([fontsize,int(round(c.fontsize))])
+                                                                    font_size.extend([fontsize,int(round(c.fontsize))])
                                                                     font_names.extend([fontname,c.fontname])
                                                                     docs.extend([doc, doc])
                                                                     objects.extend([objectnum, objectnum])
@@ -170,7 +177,7 @@ def parse_words(lt_objs):
                                                                     if len(word) == 1:
                                                                             xcord_first = c.bbox[0]
                                                                             ycord_first = c.bbox[1]
-                                                                            #fontsize = int(round(c.fontsize))
+                                                                            fontsize = int(round(c.fontsize))
                                                                             fontname = c.fontname
                                                                     # if space and previous token was not space: append word to list (without the space) and start new word
                                                                     if c.get_text() == ' ':
@@ -178,7 +185,7 @@ def parse_words(lt_objs):
                                                                             pages.append(pagenum)
                                                                             xcords_first.append(xcord_first)
                                                                             ycords_first.append(ycord_first)
-                                                                            #font_size.append(fontsize)
+                                                                            font_size.append(fontsize)
                                                                             font_names.append(fontname)
                                                                             docs.append(doc)
                                                                             objects.append(objectnum)
@@ -190,7 +197,7 @@ def parse_words(lt_objs):
                                                                 pages.append(pagenum)
                                                                 xcords_first.append(xcord_first)
                                                                 ycords_first.append(ycord_first)
-                                                                #font_size.append(fontsize)
+                                                                font_size.append(fontsize)
                                                                 font_names.append(fontname)
                                                                 docs.append(doc)
                                                                 objects.append(objectnum)
@@ -258,7 +265,6 @@ for d, entry in enumerate(entries):
 
 	i = i+1
 
-print(len(font_names))
 #creat empty dataframe
 df = pd.DataFrame( 
 	{
@@ -266,7 +272,7 @@ df = pd.DataFrame(
 	 'Page': pages,
 	 'Ycord_first': ycords_first,
         'Xcord_first': xcords_first,
-        #'font_size': font_size,
+        'font_size': font_size,
         'font_name': font_names,
 	 'Object': objects,
         'Textbox': textboxes,
@@ -318,4 +324,4 @@ df = df.sort_values(['doc','Page','ycord_average','Xcord_first'],ascending=[True
 
 df.reset_index(inplace=True, drop = True)
 
-df.to_csv('01_data.csv', encoding='utf-8-sig')
+df.to_csv(os.path.join(ospath, 'data/demo/01_data.csv'), encoding='utf-8-sig')
