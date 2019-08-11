@@ -324,4 +324,5 @@ df = df.sort_values(['doc','Page','ycord_average','Xcord_first'],ascending=[True
 
 df.reset_index(inplace=True, drop = True)
 
+# Change to 'data/1_output/01_data.csv' when running with all PDFs
 df.to_csv(os.path.join(ospath, 'data/demo/01_data.csv'), encoding='utf-8-sig')
