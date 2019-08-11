@@ -395,9 +395,12 @@ def encode_columns (data):
     return encoded_data
 
 def create_word_embedding (data):
+    #set directory path of current script
+    ospath =  os.path.dirname(__file__) 
+
     #load existing embeddings
     print ('Start: Vectors loading')
-    en_model = KeyedVectors.load_word2vec_format('cc.de.300.vec')
+    en_model = KeyedVectors.load_word2vec_format(os.path.join(ospath, 'data/4_Word2Vec/cc.de.300.vec'))
 
 
     #preprocess words
@@ -450,17 +453,6 @@ def create_word_embedding (data):
 
     return emb_data
 
-def delete_samples (data):
-    
-    wrong = ['008_sd.pdf', '029_sd.pdf', '035_sd.pdf', '041_sd.pdf', '043_sd.pdf', '045_sd.pdf', '049_sd.pdf', '050_sd.pdf', '051_sd.pdf', '052_sd.pdf', '053_sd.pdf', '055_sd.pdf', '056_sd.pdf', '059_sd.pdf', '061_sd.pdf', '062_sd.pdf', '064_sd.pdf', '077_sd.pdf', '081_sd.pdf', '089_sd.pdf', '091_sd.pdf', '093_sd.pdf', '096_sd.pdf', '105_sd.pdf', '106_sd.pdf', '108_sd.pdf', '115_sd.pdf', '116_sd.pdf', '117_sd.pdf', '118_sd.pdf', '120_sd.pdf', '121_sd.pdf', '122_sd.pdf', '123_sd.pdf', '144_sd.pdf', '164_sd.pdf', '165_sd.pdf', '169_sd.pdf', '170_sd.pdf', '175_sd.pdf', '176_sd.pdf', '177_sd.pdf', '180_sd.pdf', '181_sd.pdf', '182_sd.pdf', '183_sd.pdf', '184_sd.pdf', '185_sd.pdf', '186_sd.pdf', '187_sd.pdf', '188_sd.pdf', '191_sd.pdf', '193_sd.pdf', '194_sd.pdf', '195_sd.pdf', '198_sd.pdf', '199_sd.pdf', '200_sd.pdf', '201_sd.pdf', '205_sd.pdf', '208_sd.pdf', '212_sd.pdf', '213_sd.pdf', '214_sd.pdf', '215_sd.pdf', '216_sd.pdf', '217_sd.pdf', '226_sd.pdf', '248_sd.pdf', '249_sd.pdf', '260_sd.pdf', '268_sd.pdf', '269_sd.pdf', '270_sd.pdf', '271_sd.pdf', '277_sd.pdf', '278_sd.pdf', '279_sd.pdf', '280_sd.pdf', '281_sd.pdf', '285_sd.pdf', '321_sd.pdf', '322_sd.pdf', '323_sd.pdf', '332_sd.pdf', '337_sd.pdf', '338_sd.pdf', '340_sd.pdf', '341_sd.pdf', '344_sd.pdf', '345_sd.pdf', '346_sd.pdf', '347_sd.pdf', '353_sd.pdf', '354_sd.pdf', '357_sd.pdf', '358_sd.pdf', '359_sd.pdf', '361_sd.pdf', '362_sd.pdf', '363_sd.pdf', '364_sd.pdf', '371_sd.pdf', '374_sd.pdf', '375_sd.pdf', '376_sd.pdf', '377_sd.pdf', '378_sd.pdf', '380_sd.pdf', '381_sd.pdf', '383_sd.pdf', '384_sd.pdf', '385_sd.pdf', '386_sd.pdf', '392_sd.pdf', '402_sd.pdf', '403_sd.pdf', '408_sd.pdf', '409_sd.pdf', '410_sd.pdf', '423_sd.pdf', '424_sd.pdf', '425_sd.pdf', '430_sd.pdf', '455_sd.pdf', '456_sd.pdf', '457_sd.pdf', '458_sd.pdf', '462_sd.pdf', '463_sd.pdf', '464_sd.pdf', '465_sd.pdf', '466_sd.pdf', '467_sd.pdf', '468_sd.pdf', '469_sd.pdf', '479_sd.pdf', '528_sd.pdf', '530_sd.pdf', '531_sd.pdf', '532_sd.pdf', '533_sd.pdf', '534_sd.pdf', '535_sd.pdf', '536_sd.pdf', '537_sd.pdf', '538_sd.pdf', '539_sd.pdf', '540_sd.pdf', '542_sd.pdf', '543_sd.pdf', '544_sd.pdf', '545_sd.pdf', '546_sd.pdf', '547_sd.pdf', '548_sd.pdf', '549_sd.pdf', '550_sd.pdf', '559_sd.pdf', '560_sd.pdf', '562_sd.pdf', '563_sd.pdf', '564_sd.pdf', '565_sd.pdf', '566_sd.pdf', '567_sd.pdf', '583_sd.pdf', '602_sd.pdf', '603_sd.pdf', '644_sd.pdf', '677_sd.PDF', '715_sd.pdf', '721_sd.pdf', '724_sd.pdf', '731_sd.pdf']
-
-    filtered = data[~data.doc.isin(wrong)]
-    filtered = filtered[pd.notnull(filtered['doc'])]
-    filtered = filtered.reset_index(drop=True)
-
-    return filtered
-
-
 def main ():
     
     data = prepare_data('02_data.csv')
@@ -472,7 +464,7 @@ def main ():
         create_features,
         encode_columns,     
         #create_word_embedding,
-        #create_window,         
+        create_window,         
         ]
     
     for i in methods:
