@@ -295,9 +295,6 @@ def create_features (data):
                 features['word.is.newline'].append(0)
         else:
             features['word.is.newline'].append(1)
-
-    #for f in features:
-        #print(len(features[f]))
             
     features = pd.DataFrame(features)
 
@@ -308,47 +305,6 @@ def create_features (data):
     final_data = pd.concat((orientation_col, labels,features, data[['ycord_average', 'Xcord_first']]), axis=1, sort=False)
         
     return final_data
-
-def create_window (data):
-    
-    #Feature Groups
-    ort_col = ['doc', 'Page', 'word', 'label', 'label_dum']
-    labels = ['chapter', 'subchapter', 'version', 'directive', 'signal', 'chem', 'company', 'date', 'date_oldversiondate', 'date_printdate', 'date_revisiondate', 'date_validdate', 'usecase', 'usecase_con', 'usecase_pro']
-    paper_feature = ['word.is.lower', 'word.is.upper', 'word.is.mixed.case', 'word.is.digit', 'word.contains.digit', 'word.is.special.char','word.len.1', 'word.len.3', 'word.len.5', 'word.len.7', 'word.len.9', 'word.len.11', 'word.len.13', 'word.is.stop']
-    date_specific_feature = ['word.is.print.date.trigger', 'word.is.revision.date.trigger', 'word.is.valid.date.trigger', 'word.is.oldversion.date.trigger']
-    #dropped 'word.contains.special.char'
-    new_feature = ['word.is.title', 'word.is.bold', 'word.is.newline','ycord_average','Xcord_first', 'grid.area_11', 'grid.area_12', 'grid.area_13', 'grid.area_14', 'grid.area_15', 'grid.area_16', 'grid.area_17', 'grid.area_18', 'grid.area_21', 'grid.area_22', 'grid.area_23', 'grid.area_24', 'grid.area_25', 'grid.area_26', 'grid.area_27', 'grid.area_28', 'grid.area_31', 'grid.area_32', 'grid.area_33', 'grid.area_34', 'grid.area_35', 'grid.area_36', 'grid.area_37', 'grid.area_38', 'grid.area_41', 'grid.area_42', 'grid.area_43', 'grid.area_44', 'grid.area_45', 'grid.area_46', 'grid.area_47', 'grid.area_48', 'is.page.1', 'is.page.2', 'is.page.3']
-
-    data_ord = data[ort_col + labels]
-
-    columns = [paper_feature, date_specific_feature, new_feature]
-
-    #create window for all features except word embedding
-    window_size_feat = 13
-    #copies the previous and following features for every token in a given window
-    for col in range (len(columns)):
-        sel_col = data[columns[col]]
-        data_ord = pd.concat([data_ord, sel_col], axis=1, sort=False)
-        for i in range (1, math.ceil(window_size_feat/2)):
-            print ('Window: ',col,i)
-            data_pre = sel_col.shift(i).add_prefix ('-' + str(i) + '_')
-            data_suc = sel_col.shift(-i).add_prefix ('+' + str(i) + '_')
-            data_ord = pd.concat([data_ord, data_pre, data_suc], axis=1, sort=False)
-    
-    data_ord.to_pickle('data_model_allfeatw13.pkl')
-
-    #create window for word embedding
-    window_size_emb = 13
-    sel_col = data.loc[:,'0':'299']
-    data_ord = pd.concat([data_ord, sel_col], axis=1, sort=False)
-    for i in range (1, math.ceil(window_size_emb/2)):
-        print ('Window_Emb: ',i)
-        data_pre = sel_col.shift(i).add_prefix ('-' + str(i) + '_')
-        data_suc = sel_col.shift(-i).add_prefix ('+' + str(i) + '_')
-        data_ord = pd.concat([data_ord, data_pre, data_suc], axis=1, sort=False)
-        data_ord.to_pickle('data_model_allfeatw13_web' + str(i) + '.pkl')
-
-    return data_ord
 
 
 def encode_columns (data): 
@@ -394,77 +350,14 @@ def encode_columns (data):
 
     return encoded_data
 
-def create_word_embedding (data):
-    #set directory path of current script
-    ospath =  os.path.dirname(__file__) 
-
-    #load existing embeddings
-    print ('Start: Vectors loading')
-    en_model = KeyedVectors.load_word2vec_format(os.path.join(ospath, 'data/4_Word2Vec/cc.de.300.vec'))
-
-
-    #preprocess words
-    word_emb_input = pd.DataFrame(data.loc[:,'word'].str.lower())
-    word_emb_input = pd.DataFrame(word_emb_input)
-    word_emb_input = word_emb_input.astype(str)
-    word_emb_input['preprocessed'] = np.nan
-    word_emb_input ['preprocessed'] = [re.sub('\d', 'D', x) for x in word_emb_input['word'].tolist()]
-    word_emb_input = word_emb_input.drop(['word'],1)
-   
-    #create embeddings
-    print ('Start: Embedding')
-    '''emb = pd.DataFrame ()
-    for row in word_emb_input.loc[:, ['preprocessed']].itertuples(index=True):
-        print (row.Index)
-        try:
-            emb =  pd.concat([emb, pd.DataFrame (en_model[row.preprocessed]).transpose()])
-        except:
-            emb =  pd.concat([emb, pd.DataFrame (np.full((1, 300), 0.0))])
-    '''
-    '''
-    words = list(word_emb_input.loc[:,'preprocessed'])
-    emb = np.array(np.full((1, 300), 0.0))
-    nv = np.array(np.full((1, 300), 0.0))
-    i = 0
-    for x in words:
-        print (i)
-        try:
-            emb = np.append (emb, np.array([en_model[x]]), axis = 0)
-        except:
-            emb = np.append (emb, nv, axis = 0)
-        i +=1
-
-    emb_df = pd.DataFrame(emb)
-    emb_df = emb_df.iloc[1:]
-    '''
-
-    #calculate embeddings for every word
-    missing=[0]*300
-    def fun(key):
-        try:
-            return(en_model[key])
-        except:
-            return(missing)
-    word_emb_input['vector'] = word_emb_input['preprocessed'].apply(fun)
-    word_emb = pd.DataFrame(word_emb_input['vector'].values.tolist())
-
-    #concat data
-    emb_data = pd.concat((data, word_emb), axis=1, sort=False)
-
-    return emb_data
-
 def main ():
     
     data = prepare_data('02_data.csv')
 
-   #data =  pd.read_pickle('./data_model_wordembedding.pkl')
-
     #Select identifiers to run
     methods = [         
         create_features,
-        encode_columns,     
-        #create_word_embedding,
-        create_window,         
+        encode_columns       
         ]
     
     for i in methods:
@@ -473,8 +366,6 @@ def main ():
         data = i (data)
 
         print ('********** End: ' + i.__name__ + ' **********')
-
-    #data.to_pickle('./data_model_window13.pkl')
 
     create_output(data, '03_data.csv')
     
