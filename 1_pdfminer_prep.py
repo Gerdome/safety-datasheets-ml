@@ -287,7 +287,6 @@ df = df[ df["word"] != ""]
 #identify special characters
 df['special_char'] = df['word'].apply(lambda x: 1 if (x in ('"*"', 'ꞏ') or (len(x) == 1 and x.isalnum () == False)) else 0 )
 
-df.to_csv('data_all_ordered.csv', encoding='utf-8-sig')
 
 yc = df['Ycord_first']
 yc_new = []
