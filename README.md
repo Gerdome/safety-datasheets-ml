@@ -1,24 +1,3 @@
-# safety-datasheets-ml
-Repository for our university project about validating and extracting safety data sheets
-# Validierung von Sicherheitsdatenbl�tter
-
-
-## Ziele
-### Klassifikation durch ML
-
-Handelt es sich bei dem Dokument um ein Sicherheitsdatenblatt? -> ja/nein/vielleicht --> das ist ein test
-
-### Pr�fparameter
-Erkennung der einzelnen Pr�fparameter:
-#### Verordnungen
-
-#### Version des Datenblatts
-
-#### Datum
-
-#### Erkennung von Kapitel 1-16
-
-#### Erkennung von Unterabschnitten
-
-#### Inhalt der Abschnitte
-
+# Abstract
+We examine how document element extraction can be automated, using the example of safety datasheets (SDs), stored in the Portable Document Format (PDF) from a big retail business. For this purpose, we provide a new benchmark data set with 527 SDs, labeled with 13 different elements of interest. We experiment with Word Embeddings, Hand-Crafted Features and a newly developed feature group called Structural Features to train 46 separate Random Forest Classifiers. The results show that context incorporation leads to improvements for all feature sets, significantly for Hand-Crafted Features and Word Embeddings. Without information about the context, we already achieve strong scores within all models containing our self-developed Structural Features, whereas in this case Hand-Crafted Features are not sufficient. Overall, the best results are obtained by combining all feature groups as well as context incorporation. 
+ 
